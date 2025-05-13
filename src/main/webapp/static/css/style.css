@@ -1,0 +1,17 @@
+body {
+    background-color: #f8f9fa;
+}
+.container {
+    margin-top: 20px;
+}
+.table {
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+.btn-primary {
+    margin: 5px;
+}
+h1 {
+    color: #343a40;
+    margin-bottom: 20px;
+}
