@@ -1,7 +1,7 @@
 package vn.edu.volunteer.dao;
 
-
 import vn.edu.volunteer.model.HoatDong;
+import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,8 @@ public class HoatDongDAO {
 
     public List<HoatDong> findAll() {
         Session session = sessionFactory.getCurrentSession();
-        return session.createQuery("from HoatDong", HoatDong.class).list();
+        Criteria criteria = session.createCriteria(HoatDong.class);
+        return criteria.list();
     }
 
     public HoatDong findById(String maHD) {

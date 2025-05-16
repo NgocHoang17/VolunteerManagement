@@ -1,7 +1,5 @@
 package vn.edu.volunteer.dao;
 
-
-
 import vn.edu.volunteer.model.SinhVien;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -22,8 +20,9 @@ public class SinhVienDAO {
 
     public List<SinhVien> findAll() {
         Session session = sessionFactory.getCurrentSession();
-        return session.createQuery("from SinhVien", SinhVien.class).list();
+        return session.createCriteria(SinhVien.class).list();
     }
+
 
     public SinhVien findById(String mssv) {
         Session session = sessionFactory.getCurrentSession();

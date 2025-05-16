@@ -1,9 +1,10 @@
 package vn.edu.volunteer.dao;
 
-
 import vn.edu.volunteer.model.ThamGia;
+import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -21,15 +22,15 @@ public class ThamGiaDAO {
 
     public List<ThamGia> findBySinhVien(String mssv) {
         Session session = sessionFactory.getCurrentSession();
-        return session.createQuery("from ThamGia where mssv = :mssv", ThamGia.class)
-                .setParameter("mssv", mssv)
-                .list();
+        Criteria criteria = session.createCriteria(ThamGia.class);
+        criteria.add(Restrictions.eq("mssv", mssv));
+        return criteria.list();
     }
 
     public List<ThamGia> findByHoatDong(String maHD) {
         Session session = sessionFactory.getCurrentSession();
-        return session.createQuery("from ThamGia where maHD = :maHD", ThamGia.class)
-                .setParameter("maHD", maHD)
-                .list();
+        Criteria criteria = session.createCriteria(ThamGia.class);
+        criteria.add(Restrictions.eq("maHD", maHD));
+        return criteria.list();
     }
 }
