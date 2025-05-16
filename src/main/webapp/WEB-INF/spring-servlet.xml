@@ -13,6 +13,8 @@
                            http://www.springframework.org/schema/tx
                            http://www.springframework.org/schema/tx/spring-tx.xsd">
 
+    <mvc:resources mapping="/static/**" location="/static/"/>
+
     <!-- Quét các component: controller, service, repository -->
     <context:component-scan base-package="vn.edu.volunteer"/>
 

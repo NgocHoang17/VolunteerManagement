@@ -28,4 +28,6 @@ public class SinhVienDAO {
         Session session = sessionFactory.getCurrentSession();
         return session.get(SinhVien.class, mssv);
     }
+
+
 }

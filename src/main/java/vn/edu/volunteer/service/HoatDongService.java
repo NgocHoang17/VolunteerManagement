@@ -30,12 +30,16 @@ public class HoatDongService {
         return hoatDongDAO.findById(maHD);
     }
 
-//    @Transactional
-//    public String getMostPopularActivity() {
-//        List<HoatDong> hoatDongs = hoatDongDAO.findAll();
-//        return hoatDongs.stream()
-//                .max(Comparator.comparing(h -> h.getThamGias().size()))
-//                .map(H RoslynCore::get(HoatDong::getTenHD)
-//                .orElse("Chưa có hoạt động");
+//    public void deleteById(String id) {
+//        hoatDongDAO.deleteById(id);
 //    }
+
+    @Transactional(readOnly = true)
+    public String getMostPopularActivity() {
+        List<HoatDong> hoatDongs = hoatDongDAO.findAll();
+        return hoatDongs.stream()
+                .max(Comparator.comparing(h -> h.getThamGias() != null ? h.getThamGias().size() : 0))
+                .map(HoatDong::getTenHD)
+                .orElse("Chưa có hoạt động");
+    }
 }

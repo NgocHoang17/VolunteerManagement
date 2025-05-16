@@ -34,6 +34,10 @@ public class SinhVienService {
         return sinhVienDAO.findById(mssv);
     }
 
+//    public void deleteById(String id) {
+//        sinhVienDAO.deleteById(id);
+//    }
+
     @Transactional
     public int getTotalVolunteerHours(String mssv) {
         List<ThamGia> thamGias = thamGiaDAO.findBySinhVien(mssv);

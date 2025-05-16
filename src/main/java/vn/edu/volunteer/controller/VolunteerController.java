@@ -35,7 +35,7 @@ public class VolunteerController {
     public String home(Model model) {
         model.addAttribute("sinhViens", sinhVienService.findAll());
         model.addAttribute("hoatDongs", hoatDongService.findAll());
-       // model.addAttribute("mostPopularActivity", hoatDongService.getMostPopularActivity());
+        model.addAttribute("mostPopularActivity", hoatDongService.getMostPopularActivity());
         return "index";
     }
 
@@ -107,23 +107,53 @@ public class VolunteerController {
         return "search-hoatdong";
     }
 
-    // Xuất chứng nhận PDF
-//    @GetMapping("/thamgia/certificate")
-//    public void generateCertificate(@RequestParam("mssv") String mssv, @RequestParam("maHD") String maHD, HttpServletResponse response) throws Exception {
-//        ThamGia thamGia = thamGiaService.findBySinhVien(mssv).stream()
-//                .filter(t -> t.getMaHD().equals(maHD)).findFirst().orElse(null);
-//        if (thamGia != null) {
-//            response.setContentType("application/pdf");
-//            response.setHeader("Content-Disposition", "attachment; filename=certificate.pdf");
-//
-//            Document document = new Document();
-//            PdfWriter.getInstance(document, response.getOutputStream());
-//            document.open();
-//            document.add(new Paragraph("CHỨNG NHẬN THAM GIA"));
-//            document.add(new Paragraph("Sinh Viên: " + thamGia.getSinhVien().getHoTen()));
-//            document.add(new Paragraph("Hoạt Động: " + thamGia.getHoatDong().getTenHD()));
-//            document.add(new Paragraph("Số Giờ: " + thamGia.getSoGioThamGia()));
-//            document.close();
-//        }
+    // Chỉnh sửa sinh viên
+    @GetMapping("/sinhvien/edit/{mssv}")
+    public String showEditSinhVienForm(@PathVariable String mssv, Model model) {
+        SinhVien sinhVien = sinhVienService.findById(mssv);
+        model.addAttribute("sinhVien", sinhVien);
+        return "sinhvien-form";
+    }
+
+    // Xóa sinh viên
+//    @GetMapping("/sinhvien/delete/{mssv}")
+//    public String deleteSinhVien(@PathVariable String mssv) {
+//        sinhVienService.deleteById(mssv);
+//        return "redirect:/?successMessage=Xóa sinh viên thành công";
 //    }
+
+    // Chỉnh sửa hoạt động
+    @GetMapping("/hoatdong/edit/{maHD}")
+    public String showEditHoatDongForm(@PathVariable String maHD, Model model) {
+        HoatDong hoatDong = hoatDongService.findById(maHD);
+        model.addAttribute("hoatDong", hoatDong);
+        return "hoatdong-form";
+    }
+
+    // Xóa hoạt động
+//    @GetMapping("/hoatdong/delete/{maHD}")
+//    public String deleteHoatDong(@PathVariable String maHD) {
+//        hoatDongService.deleteById(maHD);
+//        return "redirect:/?successMessage=Xóa hoạt động thành công";
+//    }
+
+    // Xuất chứng nhận PDF
+    @GetMapping("/thamgia/certificate")
+    public void generateCertificate(@RequestParam("mssv") String mssv, @RequestParam("maHD") String maHD, HttpServletResponse response) throws Exception {
+        ThamGia thamGia = thamGiaService.findBySinhVien(mssv).stream()
+                .filter(t -> t.getMaHD().equals(maHD)).findFirst().orElse(null);
+        if (thamGia != null) {
+            response.setContentType("application/pdf");
+            response.setHeader("Content-Disposition", "attachment; filename=certificate.pdf");
+
+            Document document = new Document();
+            PdfWriter.getInstance(document, response.getOutputStream());
+            document.open();
+            document.add(new Paragraph("CHỨNG NHẬN THAM GIA"));
+            document.add(new Paragraph("Sinh Viên: " + thamGia.getSinhVien().getHoTen()));
+            document.add(new Paragraph("Hoạt Động: " + thamGia.getHoatDong().getTenHD()));
+            document.add(new Paragraph("Số Giờ: " + thamGia.getSoGioThamGia()));
+            document.close();
+        }
+    }
 }
