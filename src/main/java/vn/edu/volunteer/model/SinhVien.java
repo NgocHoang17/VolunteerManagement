@@ -1,6 +1,5 @@
 package vn.edu.volunteer.model;
 
-
 import javax.persistence.*;
 import java.util.List;
 
@@ -26,13 +25,13 @@ public class SinhVien {
     @Column(name = "Khoa")
     private String khoa;
 
-    @Column(name = "Truong")
-    private String truong;
+    @ManyToOne
+    @JoinColumn(name = "MaTruong")
+    private Truong truong;
 
     @OneToMany(mappedBy = "sinhVien")
     private List<ThamGia> thamGias;
 
-    // Getters and Setters
     public String getMssv() { return mssv; }
     public void setMssv(String mssv) { this.mssv = mssv; }
     public String getHoTen() { return hoTen; }
@@ -45,8 +44,8 @@ public class SinhVien {
     public void setLop(String lop) { this.lop = lop; }
     public String getKhoa() { return khoa; }
     public void setKhoa(String khoa) { this.khoa = khoa; }
-    public String getTruong() { return truong; }
-    public void setTruong(String truong) { this.truong = truong; }
+    public Truong getTruong() { return truong; }
+    public void setTruong(Truong truong) { this.truong = truong; }
     public List<ThamGia> getThamGias() { return thamGias; }
     public void setThamGias(List<ThamGia> thamGias) { this.thamGias = thamGias; }
 }

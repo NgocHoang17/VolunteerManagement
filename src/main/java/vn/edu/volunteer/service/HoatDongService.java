@@ -1,45 +1,58 @@
 package vn.edu.volunteer.service;
 
-
-import vn.edu.volunteer.dao.HoatDongDAO;
-import vn.edu.volunteer.model.HoatDong;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Comparator;
-import java.util.List;
+import vn.edu.volunteer.model.HoatDong;
+import vn.edu.volunteer.repository.HoatDongRepository;
 
 @Service
 public class HoatDongService {
     @Autowired
-    private HoatDongDAO hoatDongDAO;
+    private HoatDongRepository hoatDongRepository;
 
     @Transactional
     public void save(HoatDong hoatDong) {
-        hoatDongDAO.save(hoatDong);
+        hoatDongRepository.save(hoatDong);
     }
 
-    @Transactional
-    public List<HoatDong> findAll() {
-        return hoatDongDAO.findAll();
+    @Cacheable("hoatDongs")
+    @Transactional(readOnly = true)
+    public Page<HoatDong> findAll(Pageable pageable) {
+        return hoatDongRepository.findAll(pageable);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public HoatDong findById(String maHD) {
-        return hoatDongDAO.findById(maHD);
+        return hoatDongRepository.findById(maHD).orElse(null);
     }
 
-//    public void deleteById(String id) {
-//        hoatDongDAO.deleteById(id);
-//    }
+    @Transactional(readOnly = true)
+    public Page<HoatDong> search(String keyword, String maToChuc, Pageable pageable) {
+        if (keyword != null && !keyword.isEmpty()) {
+            return hoatDongRepository.findByTenHDContainingIgnoreCase(keyword, pageable);
+        }
+        if (maToChuc != null && !maToChuc.isEmpty()) {
+            return hoatDongRepository.findByToChucMaToChuc(maToChuc, pageable);
+        }
+        return findAll(pageable);
+    }
 
     @Transactional(readOnly = true)
     public String getMostPopularActivity() {
-        List<HoatDong> hoatDongs = hoatDongDAO.findAll();
-        return hoatDongs.stream()
-                .max(Comparator.comparing(h -> h.getThamGias() != null ? h.getThamGias().size() : 0))
+        return hoatDongRepository.findAll().stream()
+                .max((h1, h2) -> Integer.compare(
+                        h1.getThamGias() != null ? h1.getThamGias().size() : 0,
+                        h2.getThamGias() != null ? h2.getThamGias().size() : 0))
                 .map(HoatDong::getTenHD)
                 .orElse("Chưa có hoạt động");
+    }
+
+    @Transactional
+    public void deleteById(String maHD) {
+        hoatDongRepository.deleteById(maHD);
     }
 }

@@ -1,46 +1,64 @@
 package vn.edu.volunteer.service;
 
-
-import vn.edu.volunteer.dao.SinhVienDAO;
-import vn.edu.volunteer.model.SinhVien;
-import vn.edu.volunteer.model.ThamGia;
-import vn.edu.volunteer.dao.ThamGiaDAO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
+import vn.edu.volunteer.model.SinhVien;
+import vn.edu.volunteer.model.ThamGia;
+import vn.edu.volunteer.repository.SinhVienRepository;
+import vn.edu.volunteer.repository.ThamGiaRepository;
 
 @Service
 public class SinhVienService {
     @Autowired
-    private SinhVienDAO sinhVienDAO;
+    private SinhVienRepository sinhVienRepository;
 
     @Autowired
-    private ThamGiaDAO thamGiaDAO;
+    private ThamGiaRepository thamGiaRepository;
 
     @Transactional
     public void save(SinhVien sinhVien) {
-        sinhVienDAO.save(sinhVien);
+        sinhVienRepository.save(sinhVien);
     }
 
-    @Transactional
-    public List<SinhVien> findAll() {
-        return sinhVienDAO.findAll();
+    @Cacheable("sinhViens")
+    @Transactional(readOnly = true)
+    public Page<SinhVien> findAll(Pageable pageable) {
+        return sinhVienRepository.findAll(pageable);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public SinhVien findById(String mssv) {
-        return sinhVienDAO.findById(mssv);
+        return sinhVienRepository.findById(mssv).orElse(null);
     }
 
-//    public void deleteById(String id) {
-//        sinhVienDAO.deleteById(id);
-//    }
+    @Transactional(readOnly = true)
+    public Page<SinhVien> search(String keyword, String maTruong, Pageable pageable) {
+        if (keyword != null && !keyword.isEmpty()) {
+            if (keyword.contains("@")) {
+                return sinhVienRepository.findByEmailContainingIgnoreCase(keyword, pageable);
+            }
+            return sinhVienRepository.findByHoTenContainingIgnoreCase(keyword, pageable);
+        }
+        if (maTruong != null && !maTruong.isEmpty()) {
+            return sinhVienRepository.findByTruongMaTruong(maTruong, pageable);
+        }
+        return findAll(pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public int getTotalVolunteerHours(String mssv) {
+        return thamGiaRepository.findByMssv(mssv).stream()
+                .filter(tg -> "APPROVED".equals(tg.getTrangThai()))
+                .mapToInt(ThamGia::getSoGioThamGia)
+                .sum();
+    }
 
     @Transactional
-    public int getTotalVolunteerHours(String mssv) {
-        List<ThamGia> thamGias = thamGiaDAO.findBySinhVien(mssv);
-        return thamGias.stream().mapToInt(ThamGia::getSoGioThamGia).sum();
+    public void deleteById(String mssv) {
+        sinhVienRepository.deleteById(mssv);
     }
 }

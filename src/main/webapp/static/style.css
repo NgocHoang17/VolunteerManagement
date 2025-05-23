@@ -14,14 +14,13 @@ body {
 .navbar-brand {
     font-weight: bold;
     font-size: 1.5rem;
-    color: #007bff;
 }
 .nav-link {
-    color: #865757 !important;
+    color: #fff !important;
     transition: color 0.3s;
 }
 .nav-link:hover {
-    color: #996e6e !important;
+    color: #ccc !important;
 }
 
 /* Container */
@@ -91,24 +90,24 @@ h1.display-4 {
     background: #0056b3;
     transform: scale(1.05);
 }
-.btn-warning, .btn-danger {
+.btn-warning, .btn-danger, .btn-success, .btn-info {
     padding: 5px 10px;
 }
-.btn-warning:hover, .btn-danger:hover {
+.btn-warning:hover, .btn-danger:hover, .btn-success:hover, .btn-info:hover {
     transform: scale(1.05);
 }
 
-/* Tìm kiếm */
-.input-group {
+/* Tìm kiếm và Form */
+.input-group, .form-group {
     max-width: 500px;
     margin: 0 auto;
 }
-.form-control {
-    border-radius: 5px 0 0 5px;
+.form-control, .form-select {
+    border-radius: 5px;
     border: 1px solid #ced4da;
     transition: border-color 0.3s;
 }
-.form-control:focus {
+.form-control:focus, .form-select:focus {
     border-color: #007bff;
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
@@ -121,16 +120,25 @@ h1.display-4 {
     border-radius: 8px;
 }
 
+/* Footer */
+footer {
+    background: #343a40;
+    color: #fff;
+    padding: 1rem 0;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .navbar-brand {
         font-size: 1.2rem;
-        border-color: #007bff;
     }
     h1.display-4 {
         font-size: 2.5rem;
     }
     .table {
         font-size: 0.9rem;
+    }
+    .input-group, .form-group {
+        max-width: 100%;
     }
 }

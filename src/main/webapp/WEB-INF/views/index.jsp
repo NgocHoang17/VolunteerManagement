@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <html>
 <head>
     <title>Hệ Thống Quản Lý Tình Nguyện</title>
@@ -10,7 +11,7 @@
     <!-- AOS Animation -->
     <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
     <!-- Custom CSS -->
-    <link href="/static/css/style.css" rel="stylesheet">
+    <link href="/static/style.css" rel="stylesheet">
 </head>
 <body>
 <!-- Thanh điều hướng -->
@@ -64,7 +65,7 @@
                         <th>MSSV</th>
                         <th>Họ Tên</th>
                         <th>Email</th>
-                        <th>Hành động</th>
+                        <th>Hoạt động tình nguyện</th>
                     </tr>
                     </thead>
                     <tbody id="sinhVienTable">
@@ -98,7 +99,7 @@
                         <th>Mã HD</th>
                         <th>Tên HD</th>
                         <th>Địa Điểm</th>
-                        <th>Hành động</th>
+                        <th>Hoạt động tình nguyện</th>
                     </tr>
                     </thead>
                     <tbody id="hoatDongTable">
