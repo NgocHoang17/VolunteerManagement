@@ -13,7 +13,7 @@ public class Truong {
     @Column(name = "TenTruong")
     private String tenTruong;
 
-    @Column(name = "DiaChi")
+    @Column(name = "DiaChi", columnDefinition = "TEXT")
     private String diaChi;
 
     @Column(name = "KhuVuc")

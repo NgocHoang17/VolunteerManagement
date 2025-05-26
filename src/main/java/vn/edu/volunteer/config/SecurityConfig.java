@@ -4,47 +4,70 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import vn.edu.volunteer.service.UserService;
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig {
 
     @Autowired
-    private UserDetailsService userService; // Thay đổi kiểu từ UserService thành UserDetailsService
+    private UserService userService;
 
     @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    @Autowired
+    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userService)
-                .passwordEncoder(passwordEncoder());
+            .passwordEncoder(passwordEncoder());
     }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeRequests()
-                .antMatchers("/static/**", "/login", "/").permitAll()
+            .authorizeRequests()
+                // Cho phép truy cập tài nguyên tĩnh
+                .antMatchers("/resources/**", "/static/**", "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                // Cho phép truy cập trang công khai
+                .antMatchers("/", "/home", "/login", "/register", "/access-denied", "/error").permitAll()
+                // Yêu cầu xác thực cho /manage/**
+                .antMatchers("/manage/**").authenticated()
+                // Phân quyền cho các role
+                .antMatchers("/manage/admin/**").hasRole("ADMIN")
+                .antMatchers("/manage/manager/**").hasAnyRole("ADMIN", "MANAGER")
                 .anyRequest().authenticated()
-                .and()
+            .and()
                 .formLogin()
                 .loginPage("/login")
-                .defaultSuccessUrl("/")
+                .defaultSuccessUrl("/manage/home")
+                .failureUrl("/login?error=true")
                 .permitAll()
-                .and()
+            .and()
                 .logout()
+                .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+                .logoutSuccessUrl("/?logout=true")
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
+                .deleteCookies("JSESSIONID")
                 .permitAll()
-                .and()
-                .csrf().disable();
+            .and()
+                .exceptionHandling()
+                .accessDeniedPage("/access-denied")
+            .and()
+                .csrf()
+            .and()
+                .sessionManagement()
+                .maximumSessions(1)
+                .expiredUrl("/login?expired=true");
+
+        return http.build();
     }
 }

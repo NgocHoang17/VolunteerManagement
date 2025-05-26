@@ -17,7 +17,7 @@ public class DanhGia {
     @Column(name = "Diem")
     private int diem;
 
-    @Column(name = "NhanXet")
+    @Column(name = "NhanXet", columnDefinition = "TEXT")
     private String nhanXet;
 
     @ManyToOne

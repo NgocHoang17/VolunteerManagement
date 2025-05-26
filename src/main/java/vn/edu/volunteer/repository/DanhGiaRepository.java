@@ -1,10 +1,16 @@
 package vn.edu.volunteer.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 import vn.edu.volunteer.model.DanhGia;
-import vn.edu.volunteer.model.ThamGiaId;
+import java.util.List;
+import java.util.Optional;
 
-@Repository
-public interface DanhGiaRepository extends JpaRepository<DanhGia, ThamGiaId> {
+public interface DanhGiaRepository {
+    List<DanhGia> findAll();
+    Optional<DanhGia> findById(String mssv, String maHD);
+    DanhGia save(DanhGia danhGia);
+    void deleteById(String mssv, String maHD);
+    List<DanhGia> findByHoatDong_MaHD(String maHD);
+    List<DanhGia> findBySinhVien_Mssv(String mssv);
+    double getAverageDiemByHoatDong_MaHD(String maHD);
+    long count();
 }

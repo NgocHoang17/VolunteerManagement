@@ -21,7 +21,7 @@ public class AuditLog {
     @Temporal(TemporalType.TIMESTAMP)
     private Date timestamp;
 
-    @Column(name = "Details")
+    @Column(name = "Details", columnDefinition = "TEXT")
     private String details;
 
     public Long getId() { return id; }

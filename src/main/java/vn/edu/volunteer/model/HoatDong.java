@@ -14,7 +14,7 @@ public class HoatDong {
     @Column(name = "TenHD")
     private String tenHD;
 
-    @Column(name = "DiaDiem")
+    @Column(name = "DiaDiem", columnDefinition = "TEXT")
     private String diaDiem;
 
     @Column(name = "ThoiGianBatDau")

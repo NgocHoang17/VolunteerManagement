@@ -4,9 +4,6 @@
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:mvc="http://www.springframework.org/schema/mvc"
        xmlns:tx="http://www.springframework.org/schema/tx"
-       xmlns:cache="http://www.springframework.org/schema/cache"
-       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
-
        xsi:schemaLocation="
             http://www.springframework.org/schema/beans
             http://www.springframework.org/schema/beans/spring-beans.xsd
@@ -15,76 +12,62 @@
             http://www.springframework.org/schema/mvc
             http://www.springframework.org/schema/mvc/spring-mvc.xsd
             http://www.springframework.org/schema/tx
-            http://www.springframework.org/schema/tx/spring-tx.xsd
-            http://www.springframework.org/schema/cache
-            http://www.springframework.org/schema/cache/spring-cache.xsd
-            http://www.springframework.org/schema/data/jpa
-            http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+            http://www.springframework.org/schema/tx/spring-tx.xsd">
 
-    <!-- Cho phép truy cập static files -->
-    <mvc:resources mapping="/static/**" location="/static/"/>
-
-    <!-- Quét toàn bộ package -->
+    <!-- Component Scanning -->
     <context:component-scan base-package="vn.edu.volunteer"/>
 
-    <!-- Cho phép dùng annotation @Controller, @RequestMapping -->
+    <!-- Enable MVC annotations -->
     <mvc:annotation-driven/>
 
-    <!-- Cấu hình view -->
+    <!-- Static Resources -->
+    <mvc:resources mapping="/resources/**" location="/resources/"/>
+    <mvc:resources mapping="/static/**" location="/static/"/>
+
+    <!-- View Resolver -->
     <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
         <property name="prefix" value="/WEB-INF/views/"/>
         <property name="suffix" value=".jsp"/>
     </bean>
 
-    <!-- Cấu hình datasource -->
+    <!-- Database Configuration -->
     <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
-        <property name="url"
-                  value="jdbc:mysql://localhost:3306/volunteerdb?useSSL=false&amp;serverTimezone=UTC&amp;allowPublicKeyRetrieval=true"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/volunteerdb?useSSL=false&amp;serverTimezone=UTC&amp;allowPublicKeyRetrieval=true"/>
         <property name="username" value="root"/>
         <property name="password" value="Hoang1706205@"/>
     </bean>
 
-    <!-- Cấu hình JPA -->
-    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+    <!-- Hibernate SessionFactory -->
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
         <property name="dataSource" ref="dataSource"/>
         <property name="packagesToScan" value="vn.edu.volunteer.model"/>
-        <property name="jpaVendorAdapter">
-            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"/>
-        </property>
-        <property name="jpaProperties">
+        <property name="hibernateProperties">
             <props>
                 <prop key="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</prop>
                 <prop key="hibernate.show_sql">true</prop>
-                <prop key="hibernate.hbm2ddl.auto">update</prop>
+                <prop key="hibernate.format_sql">true</prop>
+                <prop key="hibernate.hbm2ddl.auto">validate</prop>
+                <prop key="hibernate.connection.characterEncoding">utf8</prop>
+                <prop key="hibernate.jdbc.time_zone">UTC</prop>
             </props>
         </property>
     </bean>
 
-    <!-- Kích hoạt Spring Data JPA -->
-    <jpa:repositories base-package="vn.edu.volunteer.repository"/>
-
-    <!-- Giao dịch -->
-    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
-        <property name="entityManagerFactory" ref="entityManagerFactory"/>
+    <!-- Transaction Manager -->
+    <bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory"/>
     </bean>
 
+    <!-- Enable Transaction Annotations -->
     <tx:annotation-driven transaction-manager="transactionManager"/>
 
-    <!-- Cache -->
-    <cache:annotation-driven/>
-
-    <bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager">
-        <property name="cacheManager" ref="ehcache"/>
+    <!-- Multipart Resolver -->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="maxUploadSize" value="10485760"/> <!-- 10MB -->
     </bean>
 
-    <bean id="ehcache" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
-        <property name="configLocation" value="classpath:ehcache.xml"/>
-        <property name="shared" value="true"/>
-    </bean>
-
-    <!-- Mail sender - comment lại nếu chưa có cấu hình -->
-    <!--
+    <!-- Mail Sender -->
     <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
         <property name="host" value="smtp.gmail.com"/>
         <property name="port" value="587"/>
@@ -92,10 +75,11 @@
         <property name="password" value="your-app-password"/>
         <property name="javaMailProperties">
             <props>
+                <prop key="mail.transport.protocol">smtp</prop>
                 <prop key="mail.smtp.auth">true</prop>
                 <prop key="mail.smtp.starttls.enable">true</prop>
+                <prop key="mail.debug">true</prop>
             </props>
         </property>
     </bean>
-    -->
 </beans>

@@ -1,47 +1,67 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!DOCTYPE html>
 <html>
 <head>
-    <title>Đăng Nhập</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
-    <link href="/static/style.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>Đăng nhập</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .btn-primary {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+        .btn-primary:hover {
+            background-color: #218838;
+            border-color: #218838;
+        }
+    </style>
 </head>
 <body>
-<div class="container my-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow-sm" data-aos="fade-up">
-                <div class="card-header bg-primary text-white text-center">
-                    <h2 class="h4 mb-0">Đăng Nhập</h2>
+    <div class="container">
+        <div class="login-container">
+            <h2 class="text-center mb-4">Đăng nhập</h2>
+            
+            <c:if test="${not empty error}">
+                <div class="alert alert-danger">${error}</div>
+            </c:if>
+            
+            <form action="<c:url value='/login'/>" method="post">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Tên đăng nhập</label>
+                    <input type="text" class="form-control" id="username" name="username" required>
                 </div>
-                <div class="card-body">
-                    <c:if test="${param.error != null}">
-                        <div class="alert alert-danger">Tên đăng nhập hoặc mật khẩu không đúng.</div>
-                    </c:if>
-                    <form action="/login" method="post">
-                        <div class="mb-3">
-                            <label class="form-label">Tên Đăng Nhập</label>
-                            <input type="text" name="username" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Mật Khẩu</label>
-                            <input type="password" name="password" class="form-control" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-sign-in-alt"></i> Đăng Nhập</button>
-                    </form>
+                
+                <div class="mb-3">
+                    <label for="password" class="form-label">Mật khẩu</label>
+                    <input type="password" class="form-control" id="password" name="password" required>
                 </div>
-            </div>
+                
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="remember-me" name="remember-me">
+                    <label class="form-check-label" for="remember-me">Ghi nhớ đăng nhập</label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
+                
+                <div class="text-center mt-3">
+                    <a href="<c:url value='/register'/>" class="text-decoration-none">Chưa có tài khoản? Đăng ký ngay</a>
+                </div>
+            </form>
         </div>
     </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-<script src="/static/js/scripts.js"></script>
-<script>
-    AOS.init({duration: 1000});
-</script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

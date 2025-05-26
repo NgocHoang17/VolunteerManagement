@@ -1,168 +1,126 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
+<!DOCTYPE html>
 <html>
 <head>
-    <title>Hệ Thống Quản Lý Tình Nguyện</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome cho icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- AOS Animation -->
-    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
-    <!-- Custom CSS -->
-    <link href="/static/style.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>Trang chủ - Quản lý tình nguyện viên</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .navbar {
+            background-color: #28a745;
+        }
+        .navbar-brand, .nav-link {
+            color: white !important;
+        }
+        .nav-link:hover {
+            color: #f8f9fa !important;
+        }
+        .activity-card {
+            transition: transform 0.3s;
+            margin-bottom: 20px;
+        }
+        .activity-card:hover {
+            transform: translateY(-5px);
+        }
+        .activity-image {
+            height: 200px;
+            object-fit: cover;
+        }
+    </style>
 </head>
 <body>
-<!-- Thanh điều hướng -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-gradient sticky-top">
-    <div class="container">
-        <a class="navbar-brand" href="/">Quản Lý Tình Nguyện</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="/sinhvien/new">Thêm Sinh Viên</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/hoatdong/new">Thêm Hoạt Động</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/thamgia/new">Thêm Tham Gia</a>
-                </li>
-            </ul>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="<c:url value='/'/>">
+                <i class="fas fa-hands-helping"></i> Quản lý tình nguyện
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="<c:url value='/'/>">
+                            <i class="fas fa-home"></i> Trang chủ
+                        </a>
+                    </li>
+                    <sec:authorize access="hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_STUDENT')">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-tasks"></i> Quản lý
+                            </a>
+                            <ul class="dropdown-menu">
+                                <sec:authorize access="hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')">
+                                    <li><a class="dropdown-item" href="<c:url value='/sinhvien'/>">Quản lý sinh viên</a></li>
+                                    <li><a class="dropdown-item" href="<c:url value='/hoatdong'/>">Quản lý hoạt động</a></li>
+                                </sec:authorize>
+                                <li><a class="dropdown-item" href="<c:url value='/thamgia'/>">Đăng ký tham gia</a></li>
+                                <sec:authorize access="hasRole('ROLE_ADMIN')">
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="<c:url value='/report'/>">Báo cáo thống kê</a></li>
+                                </sec:authorize>
+                            </ul>
+                        </li>
+                    </sec:authorize>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="<c:url value='/logout'/>">
+                            <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
-<!-- Nội dung chính -->
-<div class="container my-5">
-    <div class="text-center mb-4" data-aos="fade-up">
-        <h1 class="display-4 fw-bold">Hệ Thống Quản Lý Hoạt Động Tình Nguyện</h1>
-        <p class="lead text-muted">Hoạt động phổ biến nhất: <span class="text-primary">${mostPopularActivity}</span></p>
-    </div>
-
-    <!-- Tìm kiếm -->
-    <div class="mb-4" data-aos="fade-up" data-aos-delay="100">
-        <div class="input-group">
-            <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm sinh viên hoặc hoạt động...">
-            <button class="btn btn-primary" type="button"><i class="fas fa-search"></i> Tìm</button>
-        </div>
-    </div>
-
-    <!-- Danh sách Sinh Viên -->
-    <div class="card shadow-sm mb-5" data-aos="fade-up" data-aos-delay="200">
-        <div class="card-header bg-primary text-white">
-            <h2 class="h4 mb-0">Danh Sách Sinh Viên</h2>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                    <tr>
-                        <th>MSSV</th>
-                        <th>Họ Tên</th>
-                        <th>Email</th>
-                        <th>Hoạt động tình nguyện</th>
-                    </tr>
-                    </thead>
-                    <tbody id="sinhVienTable">
-                    <c:forEach var="sv" items="${sinhViens}">
-                        <tr>
-                            <td>${sv.mssv}</td>
-                            <td>${sv.hoTen}</td>
-                            <td>${sv.email}</td>
-                            <td>
-                                <a href="/sinhvien/edit/${sv.mssv}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a>
-                                <a href="/sinhvien/delete/${sv.mssv}" class="btn btn-sm btn-danger" onclick="return confirm('Xóa sinh viên này?')"><i class="fas fa-trash"></i></a>
-                            </td>
-                        </tr>
-                    </c:forEach>
-                    </tbody>
-                </table>
+    <!-- Main Content -->
+    <div class="container my-5">
+        <h1 class="text-center mb-5">Hoạt động tình nguyện tiêu biểu</h1>
+        
+        <div class="row">
+            <!-- Hoạt động 1 -->
+            <div class="col-md-4">
+                <div class="card activity-card">
+                    <img src="<c:url value='/resources/images/activity1.jpg'/>" class="card-img-top activity-image" alt="Hiến máu nhân đạo">
+                    <div class="card-body">
+                        <h5 class="card-title">Hiến máu nhân đạo</h5>
+                        <p class="card-text">Chương trình hiến máu tình nguyện, góp phần cứu giúp những người bệnh cần máu điều trị.</p>
+                        <a href="#" class="btn btn-primary">Xem chi tiết</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Hoạt động 2 -->
+            <div class="col-md-4">
+                <div class="card activity-card">
+                    <img src="<c:url value='/resources/images/activity2.jpg'/>" class="card-img-top activity-image" alt="Dạy học tình nguyện">
+                    <div class="card-body">
+                        <h5 class="card-title">Dạy học tình nguyện</h5>
+                        <p class="card-text">Chương trình dạy học miễn phí cho trẻ em có hoàn cảnh khó khăn.</p>
+                        <a href="#" class="btn btn-primary">Xem chi tiết</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Hoạt động 3 -->
+            <div class="col-md-4">
+                <div class="card activity-card">
+                    <img src="<c:url value='/resources/images/activity3.jpg'/>" class="card-img-top activity-image" alt="Bảo vệ môi trường">
+                    <div class="card-body">
+                        <h5 class="card-title">Bảo vệ môi trường</h5>
+                        <p class="card-text">Hoạt động dọn dẹp, làm sạch môi trường và trồng cây xanh.</p>
+                        <a href="#" class="btn btn-primary">Xem chi tiết</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Danh sách Hoạt Động -->
-    <div class="card shadow-sm" data-aos="fade-up" data-aos-delay="300">
-        <div class="card-header bg-primary text-white">
-            <h2 class="h4 mb-0">Danh Sách Hoạt Động</h2>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                    <tr>
-                        <th>Mã HD</th>
-                        <th>Tên HD</th>
-                        <th>Địa Điểm</th>
-                        <th>Hoạt động tình nguyện</th>
-                    </tr>
-                    </thead>
-                    <tbody id="hoatDongTable">
-                    <c:forEach var="hd" items="${hoatDongs}">
-                        <tr>
-                            <td>${hd.maHD}</td>
-                            <td>${hd.tenHD}</td>
-                            <td>${hd.diaDiem}</td>
-                            <td>
-                                <a href="/hoatdong/edit/${hd.maHD}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a>
-                                <a href="/hoatdong/delete/${hd.maHD}" class="btn btn-sm btn-danger" onclick="return confirm('Xóa hoạt động này?')"><i class="fas fa-trash"></i></a>
-                            </td>
-                        </tr>
-                    </c:forEach>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Toast thông báo -->
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-    <div id="successToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-header bg-success text-white">
-            <strong class="me-auto">Thành công</strong>
-            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-        <div class="toast-body">
-            Thao tác thành công!
-        </div>
-    </div>
-</div>
-
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- AOS Animation -->
-<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-<script>
-    AOS.init({ duration: 1000 });
-
-    // Tìm kiếm client-side
-    document.getElementById('searchInput').addEventListener('input', function() {
-        const searchValue = this.value.toLowerCase();
-        const sinhVienRows = document.querySelectorAll('#sinhVienTable tr');
-        const hoatDongRows = document.querySelectorAll('#hoatDongTable tr');
-
-        sinhVienRows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(searchValue) ? '' : 'none';
-        });
-
-        hoatDongRows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(searchValue) ? '' : 'none';
-        });
-    });
-
-    // Hiển thị toast nếu có thông báo thành công
-    <c:if test="${not empty successMessage}">
-    const toast = new bootstrap.Toast(document.getElementById('successToast'));
-    toast.show();
-    </c:if>
-</script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
