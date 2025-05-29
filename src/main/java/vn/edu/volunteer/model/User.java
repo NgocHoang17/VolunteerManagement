@@ -107,11 +107,11 @@ public class User implements UserDetails {
     private LocalDateTime updatedAt;
     
     // thông tin sinh viên nếu role là sinh vien
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private SinhVien sinhVien;
     
     // thông tin tổ chức if role tổ chức
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private ToChuc toChuc;
 
 
@@ -121,7 +121,7 @@ public class User implements UserDetails {
         Set<GrantedAuthority> authorities = new HashSet<>();
         if (this.role != null) {
             authorities.add(new SimpleGrantedAuthority(
-                this.role.startsWith("ROLE_") ? this.role : "ROLE_" + this.role
+                this.role.startsWith("ROLE_") ? this.role : "ROLE_" + this.role.toUpperCase()
             ));
         }
         if (this.authorities != null) {

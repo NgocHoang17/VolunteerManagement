@@ -284,4 +284,21 @@ public class ThamGiaServiceImpl implements ThamGiaService {
         hoatDong.setSoLuongDaDangKy(hoatDong.getSoLuongDaDangKy() - 1);
         hoatDongService.save(hoatDong);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ThamGia> findVolunteersByToChuc(ToChuc toChuc, int page, int size) {
+        return getCurrentSession()
+            .createQuery(
+                "select distinct t from ThamGia t " +
+                "join fetch t.sinhVien s " +
+                "join fetch t.hoatDong h " +
+                "where h.toChuc = :toChuc " +
+                "and t.trangThai = 'APPROVED' " +
+                "order by t.ngayDangKy desc", ThamGia.class)
+            .setParameter("toChuc", toChuc)
+            .setFirstResult(page * size)
+            .setMaxResults(size)
+            .list();
+    }
 } 

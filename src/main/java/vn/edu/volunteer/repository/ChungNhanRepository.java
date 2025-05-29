@@ -19,4 +19,7 @@ public interface ChungNhanRepository extends JpaRepository<ChungNhan, String> {
                            @Param("tenHoatDong") String tenHoatDong,
                            @Param("trangThai") String trangThai,
                            Pageable pageable);
+                           
+    @Query("SELECT COUNT(c) FROM ChungNhan c")
+    long count();
 } 

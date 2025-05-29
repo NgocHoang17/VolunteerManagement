@@ -12,11 +12,17 @@ import vn.edu.volunteer.model.User;
 import vn.edu.volunteer.repository.UserRepository;
 import vn.edu.volunteer.service.UserService;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import vn.edu.volunteer.model.ToChuc;
+import vn.edu.volunteer.model.SinhVien;
 
 @Service("userService")
 @Primary
 @Transactional
 public class UserServiceImpl implements UserService, UserDetailsService {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
     private UserRepository userRepository;
@@ -33,6 +39,23 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
         if (user.isBlocked()) {
             throw new UsernameNotFoundException("Tài khoản đã bị khóa: " + username);
+        }
+
+        // Kiểm tra và load thông tin theo role
+        if (user.getRole() != null) {
+            if (user.getRole().equals("ROLE_ORGANIZATION")) {
+                // Load thông tin tổ chức
+                ToChuc toChuc = user.getToChuc();
+                if (toChuc == null) {
+                    logger.warn("Tài khoản tổ chức {} chưa có thông tin tổ chức", username);
+                }
+            } else if (user.getRole().equals("ROLE_STUDENT")) {
+                // Load thông tin sinh viên
+                SinhVien sinhVien = user.getSinhVien();
+                if (sinhVien == null) {
+                    logger.warn("Tài khoản sinh viên {} chưa có thông tin sinh viên", username);
+                }
+            }
         }
 
         return user;

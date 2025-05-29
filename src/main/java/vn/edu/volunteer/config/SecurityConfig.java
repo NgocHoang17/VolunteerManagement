@@ -44,13 +44,14 @@ public class SecurityConfig {
                 // Cho phép truy cập tài nguyên tĩnh
                 .antMatchers("/resources/**", "/static/**", "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico").permitAll()
                 // Cho phép truy cập trang công khai
-                .antMatchers("/", "/home", "/auth/**", "/error/**").permitAll()
+                .antMatchers("/auth/**", "/error/**").permitAll()
                 // Phân quyền chi tiết
                 .antMatchers("/admin/**").hasRole("ADMIN")
                 .antMatchers("/organization/**").hasRole("ORGANIZATION")
                 .antMatchers("/student/**").hasRole("STUDENT")
-                .antMatchers("/manager/**").hasAnyRole("ADMIN", "MANAGER")
                 .antMatchers("/profile/**").authenticated()
+                .antMatchers("/").permitAll()
+                .antMatchers("/home").permitAll()
                 // Yêu cầu xác thực cho các URL khác
                 .anyRequest().authenticated()
             .and()

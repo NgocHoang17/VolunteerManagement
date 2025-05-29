@@ -35,4 +35,9 @@ public interface ChungNhanService {
      * Xóa chứng nhận
      */
     void delete(String maChungNhan);
+
+    /**
+     * Đếm tổng số chứng nhận
+     */
+    long count();
 } 

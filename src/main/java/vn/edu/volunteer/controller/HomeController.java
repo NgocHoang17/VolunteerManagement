@@ -22,8 +22,8 @@ public class HomeController {
      * - STUDENT -> /student/dashboard
      * - Chưa đăng nhập -> trang chủ mặc định
      */
-    @GetMapping({"/", "/home"})
-    public String home(Authentication authentication, Model model) {
+    @GetMapping("/")
+    public String root(Authentication authentication) {
         if (authentication != null && authentication.isAuthenticated()) {
             Set<String> roles = AuthorityUtils.authorityListToSet(authentication.getAuthorities());
             
@@ -35,8 +35,12 @@ public class HomeController {
                 return "redirect:/student/dashboard";
             }
         }
-        
-        return "home";
+        return "public/home";
+    }
+
+    @GetMapping("/home")
+    public String home(Authentication authentication) {
+        return root(authentication);
     }
 
     /**

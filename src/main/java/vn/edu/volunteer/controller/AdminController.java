@@ -57,95 +57,27 @@ public class AdminController {
      * - Danh sách người dùng mới đăng ký
      */
     @GetMapping({"/", "/dashboard"})
-    @Transactional(readOnly = true)
     public String showDashboard(Model model, Authentication authentication) {
         logger.info("=== Starting to load admin dashboard ===");
-        logger.info("Authenticated user: {}", authentication.getName());
-        logger.info("User authorities: {}", authentication.getAuthorities());
         
         try {
-            // Kiểm tra quyền admin
-            if (!authentication.getAuthorities().stream()
-                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-                logger.error("User {} attempted to access admin dashboard without ROLE_ADMIN", 
-                    authentication.getName());
-                return "redirect:/error/403";
-            }
-
-            // Test database connection
-            try {
-                long userCount = userService.count();
-                logger.info("Database connection test successful. Total users: {}", userCount);
-            } catch (Exception e) {
-                logger.error("Database connection test failed", e);
-                throw e;
-            }
-
-            // Thống kê tổng quan
-            try {
-                long totalStudents = sinhVienService.count();
-                model.addAttribute("totalStudents", totalStudents);
-                logger.debug("Loaded student count: {}", totalStudents);
-            } catch (Exception e) {
-                logger.error("Error loading student count: {}", e.getMessage(), e);
-                model.addAttribute("totalStudents", 0);
-            }
-
-            try {
-                long totalOrganizations = toChucService.count();
-                model.addAttribute("totalOrganizations", totalOrganizations);
-                logger.debug("Loaded organization count: {}", totalOrganizations);
-            } catch (Exception e) {
-                logger.error("Error loading organization count: {}", e.getMessage(), e);
-                model.addAttribute("totalOrganizations", 0);
-            }
-
-            try {
-                long totalActivities = hoatDongService.count();
-                model.addAttribute("totalActivities", totalActivities);
-                logger.debug("Loaded activity count: {}", totalActivities);
-            } catch (Exception e) {
-                logger.error("Error loading activity count: {}", e.getMessage(), e);
-                model.addAttribute("totalActivities", 0);
-            }
-
-            try {
-                long totalCertificates = hoatDongService.countCertificates();
-                model.addAttribute("totalCertificates", totalCertificates);
-                logger.debug("Loaded certificate count: {}", totalCertificates);
-            } catch (Exception e) {
-                logger.error("Error loading certificate count: {}", e.getMessage(), e);
-                model.addAttribute("totalCertificates", 0);
-            }
+            // Load counts
+            model.addAttribute("totalStudents", sinhVienService.count());
+            model.addAttribute("totalOrganizations", toChucService.count());
+            model.addAttribute("totalActivities", hoatDongService.count());
+            model.addAttribute("totalCertificates", chungNhanService.count());
             
-            try {
-                // Danh sách hoạt động gần đây - giới hạn 5 hoạt động
-                List<HoatDong> recentActivities = hoatDongService.findRecentActivities(5);
-                model.addAttribute("recentActivities", recentActivities);
-                logger.debug("Loaded {} recent activities", recentActivities.size());
-            } catch (Exception e) {
-                logger.error("Error loading recent activities: {}", e.getMessage(), e);
-                model.addAttribute("recentActivities", new ArrayList<>());
-            }
+            // Load recent data
+            model.addAttribute("recentActivities", hoatDongService.findRecentActivities(5));
+            model.addAttribute("recentUsers", userService.findRecentUsers(5));
             
-            try {
-                // Danh sách người dùng mới - giới hạn 5 người dùng
-                List<User> recentUsers = userService.findRecentUsers(5);
-                model.addAttribute("recentUsers", recentUsers);
-                logger.debug("Loaded {} recent users", recentUsers.size());
-            } catch (Exception e) {
-                logger.error("Error loading recent users: {}", e.getMessage(), e);
-                model.addAttribute("recentUsers", new ArrayList<>());
-            }
-            
-            logger.info("=== Admin dashboard loaded successfully for user: {} ===", authentication.getName());
             return "admin/dashboard";
             
         } catch (Exception e) {
-            logger.error("Critical error loading admin dashboard", e);
-            model.addAttribute("errorMessage", "Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại sau.");
+            logger.error("Error loading admin dashboard: {}", e.getMessage(), e);
+            model.addAttribute("errorMessage", "Có lỗi xảy ra khi tải dữ liệu");
             model.addAttribute("errorDetails", e.getMessage());
-            return "error/500";
+            return "admin/dashboard"; // Return dashboard with error message instead of 500
         }
     }
 

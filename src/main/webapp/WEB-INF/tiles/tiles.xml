@@ -40,6 +40,11 @@
     </definition>
 
     <!-- Public Pages -->
+    <definition name="public/home" extends="baseLayout">
+        <put-attribute name="title" value="Trang chủ" />
+        <put-attribute name="content" value="/WEB-INF/views/public/home.jsp" />
+    </definition>
+
     <definition name="home" extends="baseLayout">
         <put-attribute name="title" value="Trang chủ" />
         <put-attribute name="content" value="/WEB-INF/views/public/home.jsp" />

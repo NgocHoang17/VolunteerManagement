@@ -65,10 +65,11 @@
         <form-login
             login-page="/auth/login"
             login-processing-url="/auth/login"
-            default-target-url="/home"
+            authentication-success-handler-ref="customAuthenticationSuccessHandler"
             authentication-failure-url="/auth/login?error=true"
             username-parameter="username"
-            password-parameter="password"/>
+            password-parameter="password"
+            always-use-default-target="false"/>
 
         <!-- Logout Configuration -->
         <logout

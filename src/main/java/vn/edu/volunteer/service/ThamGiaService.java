@@ -53,4 +53,9 @@ public interface ThamGiaService {
     ThamGia dangKyThamGia(String maSinhVien, String maHoatDong);
 
     void huyDangKy(String maSinhVien, String maHoatDong);
+
+    /**
+     * Tìm danh sách tình nguyện viên của một tổ chức với phân trang
+     */
+    List<ThamGia> findVolunteersByToChuc(ToChuc toChuc, int page, int size);
 } 

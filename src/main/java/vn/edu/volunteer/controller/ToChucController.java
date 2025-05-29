@@ -8,6 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.volunteer.model.ToChuc;
 import vn.edu.volunteer.model.HoatDong;
 import vn.edu.volunteer.service.ToChucService;
@@ -56,13 +57,19 @@ public class ToChucController {
      */
     @GetMapping("/dashboard")
     public String dashboard(Model model, Authentication auth) {
-        ToChuc toChuc = toChucService.findByUserId(auth.getName());
-        model.addAttribute("toChuc", toChuc);
-        model.addAttribute("totalActivities", hoatDongService.countByToChuc(toChuc));
-        model.addAttribute("totalVolunteers", thamGiaService.countVolunteersByToChuc(toChuc));
-        model.addAttribute("recentVolunteers", thamGiaService.findRecentVolunteersByToChuc(toChuc, 5));
-        model.addAttribute("recentActivities", hoatDongService.findRecentActivitiesByToChuc(toChuc, 5));
-        return "organization/dashboard";
+        try {
+            ToChuc toChuc = toChucService.findByUserId(auth.getName());
+            model.addAttribute("toChuc", toChuc);
+            model.addAttribute("totalActivities", hoatDongService.countByToChuc(toChuc));
+            model.addAttribute("activeActivities", hoatDongService.countActiveByToChuc(toChuc));
+            model.addAttribute("totalVolunteers", thamGiaService.countVolunteersByToChuc(toChuc));
+            model.addAttribute("totalCertificates", hoatDongService.countCertificatesByToChuc(toChuc));
+            model.addAttribute("recentActivities", hoatDongService.findRecentActivitiesByToChuc(toChuc, 5));
+            return "organization/dashboard";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Có lỗi xảy ra khi tải dữ liệu");
+            return "organization/dashboard";
+        }
     }
 
     /**
@@ -70,33 +77,37 @@ public class ToChucController {
      */
     @GetMapping("/profile")
     public String showProfile(Model model, Authentication auth) {
-        ToChuc toChuc = toChucService.findByUserId(auth.getName());
-        model.addAttribute("toChuc", toChuc);
-        return "organization/profile";
+        try {
+            ToChuc toChuc = toChucService.findByUserId(auth.getName());
+            model.addAttribute("toChuc", toChuc);
+            return "organization/profile";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Có lỗi xảy ra khi tải thông tin tổ chức");
+            return "organization/profile";
+        }
     }
 
     /**
      * Cập nhật thông tin tổ chức
      */
     @PostMapping("/profile")
-    public String updateProfile(@ModelAttribute @Valid ToChuc toChuc, BindingResult result, Authentication auth) {
+    public String updateProfile(@ModelAttribute @Valid ToChuc toChuc, BindingResult result, 
+                              Authentication auth, RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             return "organization/profile";
         }
-        
-        ToChuc existingToChuc = toChucService.findByUserId(auth.getName());
-        
-        // Cập nhật thông tin có thể thay đổi
-        existingToChuc.setTenToChuc(toChuc.getTenToChuc());
-        existingToChuc.setEmail(toChuc.getEmail());
-        existingToChuc.setSoDienThoai(toChuc.getSoDienThoai());
-        existingToChuc.setDiaChi(toChuc.getDiaChi());
-        existingToChuc.setMoTa(toChuc.getMoTa());
-        existingToChuc.setWebsite(toChuc.getWebsite());
 
-        toChucService.save(existingToChuc);
-        auditLogService.log(auth.getName(), "UPDATE_PROFILE", "Updated organization profile");
-        return "redirect:/organization/profile?success=true";
+        try {
+            ToChuc existingToChuc = toChucService.findByUserId(auth.getName());
+            toChuc.setMaToChuc(existingToChuc.getMaToChuc());
+            toChuc.setUser(existingToChuc.getUser());
+            toChucService.save(toChuc);
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thông tin thành công");
+            return "redirect:/organization/profile";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Có lỗi xảy ra khi cập nhật thông tin");
+            return "redirect:/organization/profile";
+        }
     }
 
     /**
@@ -105,17 +116,21 @@ public class ToChucController {
      */
     @GetMapping("/activities")
     public String listActivities(@RequestParam(defaultValue = "0") int page, Model model, Authentication auth) {
-        ToChuc toChuc = toChucService.findByUserId(auth.getName());
-        model.addAttribute("activities", hoatDongService.findByToChuc(toChuc.getMaToChuc(), page, 10));
-        model.addAttribute("currentPage", page);
-        return "organization/activities";
+        try {
+            ToChuc toChuc = toChucService.findByUserId(auth.getName());
+            model.addAttribute("activities", hoatDongService.findByToChuc(toChuc.getMaToChuc(), page, 10));
+            return "organization/activities";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Có lỗi xảy ra khi tải danh sách hoạt động");
+            return "organization/activities";
+        }
     }
 
     /**
      * Hiển thị form tạo hoạt động mới
      */
     @GetMapping("/activities/new")
-    public String newActivity(Model model) {
+    public String showNewActivityForm(Model model) {
         model.addAttribute("hoatDong", new HoatDong());
         return "organization/activity-form";
     }
@@ -123,18 +138,23 @@ public class ToChucController {
     /**
      * Lưu thông tin hoạt động mới hoặc cập nhật
      */
-    @PostMapping("/activities/save")
-    public String saveActivity(@ModelAttribute @Valid HoatDong hoatDong, BindingResult result, Authentication auth) {
+    @PostMapping("/activities/new")
+    public String createActivity(@ModelAttribute @Valid HoatDong hoatDong, BindingResult result, 
+                               Authentication auth, RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             return "organization/activity-form";
         }
-        
-        ToChuc toChuc = toChucService.findByUserId(auth.getName());
-        hoatDong.setToChuc(toChuc);
-        hoatDongService.save(hoatDong);
-        auditLogService.log(auth.getName(), "SAVE_ACTIVITY", 
-            "Saved activity: " + hoatDong.getMaHoatDong());
-        return "redirect:/organization/activities?success=true";
+
+        try {
+            ToChuc toChuc = toChucService.findByUserId(auth.getName());
+            hoatDong.setToChuc(toChuc);
+            hoatDongService.save(hoatDong);
+            redirectAttributes.addFlashAttribute("successMessage", "Tạo hoạt động thành công");
+            return "redirect:/organization/activities";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Có lỗi xảy ra khi tạo hoạt động");
+            return "redirect:/organization/activities/new";
+        }
     }
 
     /**
@@ -178,9 +198,14 @@ public class ToChucController {
      */
     @GetMapping("/volunteers")
     public String listVolunteers(@RequestParam(defaultValue = "0") int page, Model model, Authentication auth) {
-        ToChuc toChuc = toChucService.findByUserId(auth.getName());
-        model.addAttribute("volunteers", toChucService.getVolunteers(toChuc.getMaToChuc()));
-        return "organization/volunteers";
+        try {
+            ToChuc toChuc = toChucService.findByUserId(auth.getName());
+            model.addAttribute("volunteers", thamGiaService.findVolunteersByToChuc(toChuc, page, 10));
+            return "organization/volunteers";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Có lỗi xảy ra khi tải danh sách tình nguyện viên");
+            return "organization/volunteers";
+        }
     }
 
     /**
@@ -213,5 +238,17 @@ public class ToChucController {
         toChucService.unblockVolunteer(toChuc.getMaToChuc(), maSV);
         auditLogService.log(auth.getName(), "UNBLOCK_VOLUNTEER", "Unblocked volunteer: " + maSV);
         return "redirect:/organization/volunteers?success=true";
+    }
+
+    @GetMapping("/certificates")
+    public String listCertificates(@RequestParam(defaultValue = "0") int page, Model model, Authentication auth) {
+        try {
+            ToChuc toChuc = toChucService.findByUserId(auth.getName());
+            model.addAttribute("certificates", hoatDongService.findCertificatesByToChuc(toChuc, page, 10));
+            return "organization/certificates";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Có lỗi xảy ra khi tải danh sách chứng nhận");
+            return "organization/certificates";
+        }
     }
 } 

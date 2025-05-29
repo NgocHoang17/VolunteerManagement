@@ -87,14 +87,19 @@ public class HoatDongServiceImpl implements HoatDongService {
 
     @Override
     public List<HoatDong> findRecentActivities(int limit) {
-        List<HoatDong> activities = hoatDongRepository.findRecentActivities(limit);
-        return activities.size() > limit ? activities.subList(0, limit) : activities;
+        return getCurrentSession()
+            .createQuery("from HoatDong h order by h.thoiGianBatDau desc", HoatDong.class)
+            .setMaxResults(limit)
+            .list();
     }
 
     @Override
     public List<HoatDong> findRecentActivitiesByToChuc(ToChuc toChuc, int limit) {
-        List<HoatDong> activities = hoatDongRepository.findRecentActivitiesByToChuc(toChuc, limit);
-        return activities.size() > limit ? activities.subList(0, limit) : activities;
+        return getCurrentSession()
+            .createQuery("from HoatDong h where h.toChuc = :toChuc order by h.thoiGianBatDau desc", HoatDong.class)
+            .setParameter("toChuc", toChuc)
+            .setMaxResults(limit)
+            .list();
     }
 
     @Override
@@ -154,5 +159,23 @@ public class HoatDongServiceImpl implements HoatDongService {
     @Override
     public void delete(String maHoatDong) {
         hoatDongRepository.deleteById(maHoatDong);
+    }
+
+    @Override
+    public long countActiveByToChuc(ToChuc toChuc) {
+        return getCurrentSession()
+            .createQuery("select count(h) from HoatDong h where h.toChuc = :toChuc and h.trangThai = 'DANG_DIEN_RA'", Long.class)
+            .setParameter("toChuc", toChuc)
+            .uniqueResult();
+    }
+
+    @Override
+    public List<HoatDong> findCertificatesByToChuc(ToChuc toChuc, int page, int size) {
+        return getCurrentSession()
+            .createQuery("from HoatDong h where h.toChuc = :toChuc and h.trangThai = 'DA_KET_THUC' order by h.thoiGianKetThuc desc", HoatDong.class)
+            .setParameter("toChuc", toChuc)
+            .setFirstResult(page * size)
+            .setMaxResults(size)
+            .list();
     }
 } 

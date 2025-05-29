@@ -244,23 +244,46 @@ $(document).ready(function() {
         $('.alert').alert('close');
     }, 5000);
 
-    // Khởi tạo DataTables
-    $('#activitiesTable').DataTable({
-        language: {
-            url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/vi.json'
-        },
-        pageLength: 5,
+    // Function to safely initialize a DataTable
+    function initializeDataTable(tableId, config) {
+        try {
+            // Destroy existing instance if it exists
+            if ($.fn.DataTable.isDataTable('#' + tableId)) {
+                $('#' + tableId).DataTable().clear().destroy();
+                $('#' + tableId).empty(); // Clear the table html
+            }
+
+            // Initialize new instance with error handling
+            return $('#' + tableId).DataTable({
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/vi.json'
+                },
+                pageLength: 5,
+                responsive: true,
+                destroy: true,
+                ...config
+            });
+        } catch (error) {
+            console.error(`Error initializing DataTable ${tableId}:`, error);
+        }
+    }
+
+    // Initialize Activities Table
+    initializeDataTable('activitiesTable', {
         order: [[3, 'desc']], // Sắp xếp theo thời gian bắt đầu
-        responsive: true
+        columnDefs: [{
+            targets: -1, // Last column
+            orderable: false // Disable sorting for action column
+        }]
     });
 
-    $('#usersTable').DataTable({
-        language: {
-            url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/vi.json'
-        },
-        pageLength: 5,
+    // Initialize Users Table
+    initializeDataTable('usersTable', {
         order: [[3, 'desc']], // Sắp xếp theo ngày đăng ký
-        responsive: true
+        columnDefs: [{
+            targets: -1, // Last column
+            orderable: false // Disable sorting for action column
+        }]
     });
 });
 </script> 

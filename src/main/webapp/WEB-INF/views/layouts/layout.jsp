@@ -9,18 +9,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><tiles:getAsString name="title"/></title>
     
+    <!-- jQuery first -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link href="<c:url value='/resources/css/style.css'/>" rel="stylesheet">
+    <!-- DataTables CSS -->
+    <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    
     <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            min-height: 0;
+        }
         .sidebar {
             background-color: #f8f9fa;
-            min-height: calc(100vh - 56px);
-            padding: 1rem;
             border-right: 1px solid #dee2e6;
+            width: 250px;
+            padding: 1rem;
+            flex-shrink: 0;
+        }
+        .main-content {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
         }
         .sidebar-content {
             display: flex;
@@ -47,8 +67,15 @@
         .sidebar-link i {
             width: 1.25rem;
         }
-        .main-content {
-            padding: 1rem;
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #dee2e6;
+            }
+            .main-wrapper {
+                flex-direction: column;
+            }
         }
     </style>
     
@@ -59,24 +86,22 @@
     <!-- Navbar -->
     <tiles:insertAttribute name="navbar" />
     
-    <!-- Main Content -->
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <c:set var="hasSidebar">
-                <tiles:insertAttribute name="sidebar" ignore="true"/>
-            </c:set>
-            <c:if test="${not empty hasSidebar}">
-                <div class="col-md-3 col-lg-2">
-                    <tiles:insertAttribute name="sidebar" />
-                </div>
-            </c:if>
-            
-            <!-- Content -->
-            <div class="${not empty hasSidebar ? 'col-md-9 col-lg-10' : 'col-12'} main-content">
-                <tiles:insertAttribute name="content" />
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        <!-- Sidebar -->
+        <c:set var="hasSidebar">
+            <tiles:insertAttribute name="sidebar" ignore="true"/>
+        </c:set>
+        <c:if test="${not empty hasSidebar}">
+            <div class="sidebar">
+                <tiles:insertAttribute name="sidebar" />
             </div>
-        </div>
+        </c:if>
+        
+        <!-- Content -->
+        <main class="main-content">
+            <tiles:insertAttribute name="content" />
+        </main>
     </div>
     
     <!-- Footer -->
@@ -84,9 +109,32 @@
     
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <!-- Custom JavaScript -->
-    <script src="<c:url value='/resources/js/script.js'/>"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            try {
+                // Initialize DataTables if tables exist
+                if ($('#activitiesTable').length) {
+                    $('#activitiesTable').DataTable({
+                        language: {
+                            url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/vi.json'
+                        }
+                    });
+                }
+                if ($('#usersTable').length) {
+                    $('#usersTable').DataTable({
+                        language: {
+                            url: 'https://cdn.datatables.net/plug-ins/1.11.5/i18n/vi.json'
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Error initializing DataTables:', e);
+            }
+        });
+    </script>
 </body>
 </html> 

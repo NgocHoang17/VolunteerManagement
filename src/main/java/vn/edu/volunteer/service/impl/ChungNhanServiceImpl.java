@@ -66,4 +66,9 @@ public class ChungNhanServiceImpl implements ChungNhanService {
     public void delete(String maChungNhan) {
         chungNhanRepository.deleteById(maChungNhan);
     }
+
+    @Override
+    public long count() {
+        return chungNhanRepository.count();
+    }
 } 

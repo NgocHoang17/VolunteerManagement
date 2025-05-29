@@ -66,4 +66,14 @@ public interface HoatDongService {
     long countHoursByToChuc(ToChuc toChuc);
     List<HoatDong> findRecentActivities(int limit);
     List<HoatDong> findRecentActivitiesByToChuc(ToChuc toChuc, int limit);
+    
+    /**
+     * Đếm số hoạt động đang diễn ra của một tổ chức
+     */
+    long countActiveByToChuc(ToChuc toChuc);
+    
+    /**
+     * Tìm danh sách chứng nhận của một tổ chức với phân trang
+     */
+    List<HoatDong> findCertificatesByToChuc(ToChuc toChuc, int page, int size);
 } 

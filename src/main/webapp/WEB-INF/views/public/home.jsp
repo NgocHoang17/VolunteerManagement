@@ -2,50 +2,112 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 
+<style>
+.hero-section {
+    background: linear-gradient(135deg, #0143a3, #0273d4);
+    color: white;
+    padding: 100px 0;
+    margin-top: -24px;
+}
+
+.feature-card {
+    border: none;
+    transition: transform 0.3s;
+    margin-bottom: 30px;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: #0143a3;
+}
+
+.btn-primary {
+    background-color: #0143a3;
+    border-color: #0143a3;
+    padding: 12px 30px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-success {
+    padding: 12px 30px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.lead {
+    font-size: 1.4rem;
+    font-weight: 300;
+}
+</style>
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10 text-center">
+                <h1 class="display-3 mb-4">Hệ thống quản lý tình nguyện viên</h1>
+                <p class="lead mb-5">Nơi kết nối những trái tim nhiệt huyết với các hoạt động tình nguyện ý nghĩa</p>
+                <sec:authorize access="!isAuthenticated()">
+                    <div class="mt-4">
+                        <a href="<c:url value='/auth/login'/>" class="btn btn-primary btn-lg me-3">
+                            <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                        </a>
+                        <a href="<c:url value='/auth/register'/>" class="btn btn-success btn-lg">
+                            <i class="fas fa-user-plus"></i> Đăng ký
+                        </a>
+                    </div>
+                </sec:authorize>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card feature-card text-center p-4">
+                    <div class="card-body">
+                        <i class="fas fa-hands-helping feature-icon"></i>
+                        <h3 class="card-title">Tham gia hoạt động</h3>
+                        <p class="card-text">Dễ dàng tìm kiếm và đăng ký tham gia các hoạt động tình nguyện phù hợp.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card text-center p-4">
+                    <div class="card-body">
+                        <i class="fas fa-certificate feature-icon"></i>
+                        <h3 class="card-title">Chứng nhận điểm</h3>
+                        <p class="card-text">Tự động cập nhật và quản lý điểm tình nguyện cho mỗi hoạt động tham gia.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card text-center p-4">
+                    <div class="card-body">
+                        <i class="fas fa-users feature-icon"></i>
+                        <h3 class="card-title">Kết nối cộng đồng</h3>
+                        <p class="card-text">Xây dựng mạng lưới tình nguyện viên và tổ chức rộng khắp.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8 text-center">
-            <h1 class="display-4 mb-4">Hệ thống quản lý tình nguyện viên</h1>
-            <p class="lead mb-4">Nơi kết nối những trái tim nhiệt huyết với các hoạt động tình nguyện ý nghĩa.</p>
-            
-            <sec:authorize access="!isAuthenticated()">
-                <div class="mt-4">
-                    <a href="<c:url value='/auth/login'/>" class="btn btn-primary btn-lg me-3">
-                        <i class="fas fa-sign-in-alt"></i> Đăng nhập
-                    </a>
-                    <a href="<c:url value='/auth/register'/>" class="btn btn-success btn-lg">
-                        <i class="fas fa-user-plus"></i> Đăng ký
-                    </a>
-                </div>
-            </sec:authorize>
-            
-            <sec:authorize access="isAuthenticated()">
-                <div class="mt-4">
-                    <sec:authorize access="hasRole('ROLE_ADMIN')">
-                        <a href="<c:url value='/admin/dashboard'/>" class="btn btn-primary btn-lg me-3">
-                            <i class="fas fa-tachometer-alt"></i> Quản trị hệ thống
-                        </a>
-                    </sec:authorize>
-                    
-                    <sec:authorize access="hasRole('ROLE_STUDENT')">
-                        <a href="<c:url value='/student/dashboard'/>" class="btn btn-success btn-lg me-3">
-                            <i class="fas fa-user-graduate"></i> Trang sinh viên
-                        </a>
-                    </sec:authorize>
-                    
-                    <sec:authorize access="hasRole('ROLE_ORGANIZATION')">
-                        <a href="<c:url value='/organization/dashboard'/>" class="btn btn-info btn-lg me-3">
-                            <i class="fas fa-building"></i> Trang tổ chức
-                        </a>
-                    </sec:authorize>
-                </div>
-            </sec:authorize>
-        </div>
-    </div>
-
-    <!-- Featured Activities -->
-    <div class="row mt-5">
-        <div class="col-12">
             <h2 class="text-center mb-4">Hoạt động nổi bật</h2>
         </div>
         <div class="col-md-4">

@@ -3,6 +3,7 @@ package vn.edu.volunteer.security;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
@@ -13,7 +14,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
@@ -33,69 +37,63 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
         logger.info("User roles: {}", roles);
         
         // Xóa session cũ nếu có
-        if (session.getAttribute("SPRING_SECURITY_SAVED_REQUEST") != null) {
-            logger.info("Removing old saved request from session");
-            session.removeAttribute("SPRING_SECURITY_SAVED_REQUEST");
-        }
+        clearAuthenticationAttributes(request);
         
         // Xác định URL đích dựa trên role
-        String targetUrl = determineTargetUrl(roles);
-        logger.info("Determined target URL: {}", targetUrl);
+        String targetUrl = determineTargetUrl(authentication);
+        logger.info("Base target URL: {}", targetUrl);
         
         // Thêm thông tin user vào session
         session.setAttribute("currentUser", authentication.getPrincipal());
         logger.info("Added user principal to session with ID: {}", session.getId());
         
-        // Log session attributes
-        java.util.Enumeration<String> attributeNames = session.getAttributeNames();
-        while (attributeNames.hasMoreElements()) {
-            String attributeName = attributeNames.nextElement();
-            logger.debug("Session attribute - {}: {}", attributeName, session.getAttribute(attributeName));
-        }
-        
         // Chuyển hướng đến trang đích
-        logger.info("Redirecting to: {}", targetUrl);
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
         logger.info("=== Authentication Success Handler Completed ===");
     }
     
-    private String determineTargetUrl(Set<String> roles) {
-        logger.debug("Determining target URL for roles: {}", roles);
+    private String determineTargetUrl(Authentication authentication) {
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        List<String> roles = authorities.stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        logger.info("Determining target URL for user: {} with roles: {}", 
+            authentication.getName(), roles);
+
         String targetUrl;
-        
         if (roles.contains("ROLE_ADMIN")) {
             targetUrl = "/admin/dashboard";
+            logger.info("User is ADMIN, target URL: {}", targetUrl);
         } else if (roles.contains("ROLE_ORGANIZATION")) {
             targetUrl = "/organization/dashboard";
+            logger.info("User is ORGANIZATION, target URL: {}", targetUrl);
         } else if (roles.contains("ROLE_STUDENT")) {
             targetUrl = "/student/dashboard";
-        } else if (roles.contains("ROLE_MANAGER")) {
-            targetUrl = "/manager/dashboard";
+            logger.info("User is STUDENT, target URL: {}", targetUrl);
         } else {
             targetUrl = "/home";
+            logger.warn("No specific role found, defaulting to: {}", targetUrl);
         }
-        
-        logger.debug("Determined target URL: {}", targetUrl);
+
         return targetUrl;
     }
 
-    private boolean isUrlAllowedForRoles(String url, Set<String> roles) {
-        logger.debug("Checking if URL '{}' is allowed for roles: {}", url, roles);
-        boolean isAllowed;
-        
+    private boolean isUrlAllowed(String url, Collection<? extends GrantedAuthority> authorities) {
+        List<String> roles = authorities.stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        logger.info("Checking if URL {} is allowed for roles: {}", url, roles);
+
         if (roles.contains("ROLE_ADMIN")) {
-            isAllowed = true; // Admin có thể truy cập mọi URL
+            return url.startsWith("/admin") || url.startsWith("/profile");
         } else if (roles.contains("ROLE_ORGANIZATION")) {
-            isAllowed = url.startsWith("/organization") || url.startsWith("/profile");
+            return url.startsWith("/organization") || url.startsWith("/profile");
         } else if (roles.contains("ROLE_STUDENT")) {
-            isAllowed = url.startsWith("/student") || url.startsWith("/profile");
-        } else if (roles.contains("ROLE_MANAGER")) {
-            isAllowed = url.startsWith("/manager") || url.startsWith("/profile");
-        } else {
-            isAllowed = false;
+            return url.startsWith("/student") || url.startsWith("/profile");
         }
-        
-        logger.debug("URL '{}' allowed: {}", url, isAllowed);
-        return isAllowed;
+
+        return false;
     }
 } 
