@@ -3,32 +3,34 @@ package vn.edu.volunteer.listener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import vn.edu.volunteer.model.User;
-import vn.edu.volunteer.service.UserService;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
+import vn.edu.volunteer.service.AdminInitializationService;
 
 @Component
 public class ApplicationInitializer implements ApplicationListener<ContextRefreshedEvent> {
 
     @Autowired
-    private UserService userService;
+    private AdminInitializationService adminInitializationService;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private PlatformTransactionManager transactionManager;
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
-        // Kiểm tra và tạo tài khoản admin mặc định nếu chưa tồn tại
-        if (!userService.existsByUsername("admin")) {
-            User admin = new User();
-            admin.setUsername("admin");
-            admin.setPassword(passwordEncoder.encode("12345678"));
-            admin.setEmail("admin@localhost");
-            admin.setFullName("Administrator");
-            admin.setRole("ROLE_ADMIN");
-            admin.setEnabled(true);
-            userService.save(admin);
-        }
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+        transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        
+        transactionTemplate.execute(status -> {
+            try {
+                adminInitializationService.initializeAdminUser();
+                return null;
+            } catch (Exception e) {
+                status.setRollbackOnly();
+                throw e;
+            }
+        });
     }
 } 

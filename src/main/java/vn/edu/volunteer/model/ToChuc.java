@@ -1,40 +1,79 @@
 package vn.edu.volunteer.model;
 
+import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import javax.persistence.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
+@Data
 @Entity
-@Table(name = "TOCHUC")
+@Table(name = "to_chuc")
 public class ToChuc {
     @Id
-    @Column(name = "MaToChuc")
+    @Column(name = "ma_to_chuc")
     private String maToChuc;
 
-    @Column(name = "TenToChuc")
+    @Column(name = "ten_to_chuc", nullable = false)
     private String tenToChuc;
 
-    @Column(name = "Email")
-    private String email;
+    @Column(name = "mo_ta")
+    @Lob
+    private String moTa;
 
-    @Column(name = "SoDT")
-    private String soDT;
+    @Column(name = "muc_tieu")
+    @Lob
+    private String mucTieu;
 
-    @Column(name = "DiaChi")
+    @Column(name = "linh_vuc", nullable = false)
+    private String linhVuc;
+
+    @Column(name = "dia_chi")
     private String diaChi;
 
-    @OneToMany(mappedBy = "toChuc")
-    private List<HoatDong> hoatDongs;
+    @Column(name = "email", nullable = false, unique = true)
+    private String email;
 
-    public String getMaToChuc() { return maToChuc; }
-    public void setMaToChuc(String maToChuc) { this.maToChuc = maToChuc; }
-    public String getTenToChuc() { return tenToChuc; }
-    public void setTenToChuc(String tenToChuc) { this.tenToChuc = tenToChuc; }
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    public String getSoDT() { return soDT; }
-    public void setSoDT(String soDT) { this.soDT = soDT; }
-    public String getDiaChi() { return diaChi; }
-    public void setDiaChi(String diaChi) { this.diaChi = diaChi; }
-    public List<HoatDong> getHoatDongs() { return hoatDongs; }
-    public void setHoatDongs(List<HoatDong> hoatDongs) { this.hoatDongs = hoatDongs; }
+    @Column(name = "so_dien_thoai")
+    private String soDienThoai;
+
+    @Column(name = "website")
+    private String website;
+
+    @Column(name = "logo_url")
+    private String logoUrl;
+
+    @Column(name = "nguoi_dai_dien", nullable = false)
+    private String nguoiDaiDien;
+
+    @Column(name = "chuc_vu_nguoi_dai_dien")
+    private String chucVuNguoiDaiDien;
+
+    @Column(name = "trang_thai_xac_thuc", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private TrangThaiXacThuc trangThaiXacThuc = TrangThaiXacThuc.CHUA_XAC_THUC;
+
+    @OneToOne(optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @OneToMany(mappedBy = "toChuc", cascade = CascadeType.ALL)
+    private List<HoatDong> hoatDongs = new ArrayList<>();
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    public enum TrangThaiXacThuc {
+        CHUA_XAC_THUC,
+        DA_XAC_THUC,
+        BI_TU_CHOI
+    }
 }

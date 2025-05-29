@@ -6,6 +6,7 @@ import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -15,12 +16,14 @@ import vn.edu.volunteer.model.HoatDong;
 import vn.edu.volunteer.model.SinhVien;
 import vn.edu.volunteer.model.ThamGia;
 import vn.edu.volunteer.model.ThamGiaId;
+import vn.edu.volunteer.model.ToChuc;
 import vn.edu.volunteer.repository.ThamGiaRepository;
 import vn.edu.volunteer.service.HoatDongService;
 import vn.edu.volunteer.service.SinhVienService;
 import vn.edu.volunteer.service.ThamGiaService;
 
 import javax.persistence.criteria.Predicate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -50,126 +53,235 @@ public class ThamGiaServiceImpl implements ThamGiaService {
 
     @Override
     public List<ThamGia> findAll() {
-        return getCurrentSession().createQuery("from ThamGia", ThamGia.class).list();
+        return thamGiaRepository.findAll();
     }
 
     @Override
     public List<ThamGia> findAllWithPaging(int pageNumber, int pageSize) {
-        Session session = getCurrentSession();
-        Query<ThamGia> query = session.createQuery("from ThamGia", ThamGia.class);
-        query.setFirstResult((pageNumber - 1) * pageSize);
-        query.setMaxResults(pageSize);
-        return query.list();
+        return thamGiaRepository.findAll(PageRequest.of(pageNumber, pageSize)).getContent();
     }
 
     @Override
-    public List<ThamGia> findBySinhVien(String mssv) {
-        return getCurrentSession()
-            .createQuery("from ThamGia where sinhVien.mssv = :mssv", ThamGia.class)
-            .setParameter("mssv", mssv)
-            .list();
+    public List<ThamGia> findBySinhVien(String maSinhVien) {
+        return thamGiaRepository.findByMaSinhVien(maSinhVien);
     }
 
     @Override
     public List<ThamGia> findByHoatDong(String maHD) {
-        return getCurrentSession()
-            .createQuery("from ThamGia where hoatDong.maHD = :maHD", ThamGia.class)
-            .setParameter("maHD", maHD)
-            .list();
+        return thamGiaRepository.findByMaHoatDong(maHD);
     }
 
     @Override
-    public List<ThamGia> searchAdvanced(String mssv, String maHD, String trangThai, String xepLoai, int pageNumber, int pageSize) {
-        Session session = getCurrentSession();
-        StringBuilder hql = new StringBuilder("from ThamGia t where 1=1");
-        
-        if (mssv != null && !mssv.isEmpty()) {
-            hql.append(" and t.sinhVien.mssv = :mssv");
-        }
-        if (maHD != null && !maHD.isEmpty()) {
-            hql.append(" and t.hoatDong.maHD = :maHD");
-        }
-        if (trangThai != null && !trangThai.isEmpty()) {
-            hql.append(" and t.trangThai = :trangThai");
-        }
-        if (xepLoai != null && !xepLoai.isEmpty()) {
-            hql.append(" and t.xepLoai = :xepLoai");
-        }
-        
-        Query<ThamGia> query = session.createQuery(hql.toString(), ThamGia.class);
-        
-        if (mssv != null && !mssv.isEmpty()) {
-            query.setParameter("mssv", mssv);
-        }
-        if (maHD != null && !maHD.isEmpty()) {
-            query.setParameter("maHD", maHD);
-        }
-        if (trangThai != null && !trangThai.isEmpty()) {
-            query.setParameter("trangThai", trangThai);
-        }
-        if (xepLoai != null && !xepLoai.isEmpty()) {
-            query.setParameter("xepLoai", xepLoai);
-        }
-        
-        query.setFirstResult((pageNumber - 1) * pageSize);
-        query.setMaxResults(pageSize);
-        return query.list();
+    public List<ThamGia> searchAdvanced(String maSinhVien, String maHD, String trangThai, String xepLoai, int pageNumber, int pageSize) {
+        return thamGiaRepository.searchAdvanced(maSinhVien, maHD, trangThai, xepLoai, PageRequest.of(pageNumber, pageSize)).getContent();
     }
 
     @Override
-    public ThamGia findById(String mssv, String maHD) {
-        return getCurrentSession()
-            .createQuery("from ThamGia where sinhVien.mssv = :mssv and hoatDong.maHD = :maHD", ThamGia.class)
-            .setParameter("mssv", mssv)
-            .setParameter("maHD", maHD)
-            .uniqueResult();
+    public ThamGia findById(String maSinhVien, String maHD) {
+        return thamGiaRepository.findById(maSinhVien, maHD).orElse(null);
     }
 
     @Override
     public ThamGia save(ThamGia thamGia) {
-        HoatDong hoatDong = hoatDongService.findById(thamGia.getMaHD());
-        if (hoatDong.getThoiGianKetThuc().after(new Date())) {
-            thamGia.setTrangThai("PENDING");
-            getCurrentSession().saveOrUpdate(thamGia);
-            sendEmailNotification(thamGia);
-            return thamGia;
-        } else {
-            throw new IllegalStateException("Hoạt động đã kết thúc");
-        }
+        return thamGiaRepository.save(thamGia);
     }
 
     @Override
-    public void deleteById(String mssv, String maHD) {
-        ThamGia thamGia = findById(mssv, maHD);
-        if (thamGia != null) {
-            getCurrentSession().delete(thamGia);
-        }
+    public void deleteById(String maSinhVien, String maHD) {
+        thamGiaRepository.deleteById(maSinhVien, maHD);
     }
 
     @Override
-    public void approveThamGia(String mssv, String maHD) {
-        ThamGia thamGia = findById(mssv, maHD);
+    public void approveThamGia(String maSinhVien, String maHD) {
+        ThamGia thamGia = thamGiaRepository.findById(maSinhVien, maHD).orElse(null);
         if (thamGia != null) {
             thamGia.setTrangThai("APPROVED");
-            getCurrentSession().update(thamGia);
+            thamGia.setNgayDuyet(LocalDateTime.now());
+            thamGiaRepository.save(thamGia);
+            
+            // Gửi email thông báo nếu có cấu hình email
+            if (mailSender != null) {
+                SinhVien sinhVien = sinhVienService.findById(maSinhVien);
+                if (sinhVien != null && sinhVien.getEmail() != null) {
+                    SimpleMailMessage message = new SimpleMailMessage();
+                    message.setTo(sinhVien.getEmail());
+                    message.setSubject("Đăng ký tham gia hoạt động đã được duyệt");
+                    message.setText("Xin chào " + sinhVien.getHoTen() + ",\n\n"
+                        + "Đăng ký tham gia hoạt động của bạn đã được duyệt.\n"
+                        + "Mã hoạt động: " + maHD + "\n"
+                        + "Vui lòng kiểm tra thông tin chi tiết trên hệ thống.\n\n"
+                        + "Trân trọng,\nBan quản lý");
+                    mailSender.send(message);
+                }
+            }
         }
     }
 
     @Override
     public long count() {
-        return getCurrentSession()
-            .createQuery("select count(*) from ThamGia", Long.class)
-            .uniqueResult();
+        return thamGiaRepository.count();
     }
 
-    private void sendEmailNotification(ThamGia thamGia) {
-        if (mailSender != null && thamGia.getSinhVien() != null && thamGia.getSinhVien().getEmail() != null) {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(thamGia.getSinhVien().getEmail());
-            message.setSubject("Đăng ký tham gia hoạt động thành công");
-            message.setText("Bạn đã đăng ký tham gia hoạt động " + thamGia.getHoatDong().getTenHD() + 
-                          ". Vui lòng chờ xác nhận từ ban tổ chức.");
-            mailSender.send(message);
+    @Override
+    public long countActivities(String maSinhVien) {
+        return thamGiaRepository.countByMaSinhVien(maSinhVien);
+    }
+
+    @Override
+    public int countHours(String maSinhVien) {
+        return thamGiaRepository.countHoursByMaSinhVien(maSinhVien);
+    }
+
+    @Override
+    public int countPoints(String maSinhVien) {
+        return thamGiaRepository.countPointsByMaSinhVien(maSinhVien);
+    }
+
+    @Override
+    public long countCertificates(String maSinhVien) {
+        return thamGiaRepository.countCertificatesByMaSinhVien(maSinhVien);
+    }
+
+    @Override
+    public void register(String maSinhVien, String maHD) {
+        ThamGia thamGia = new ThamGia();
+        thamGia.setMaSinhVien(maSinhVien);
+        thamGia.setMaHoatDong(maHD);
+        thamGia.setTrangThai("PENDING");
+        thamGiaRepository.save(thamGia);
+    }
+
+    @Override
+    public void cancel(String maSinhVien, String maHD) {
+        ThamGia thamGia = thamGiaRepository.findById(maSinhVien, maHD).orElse(null);
+        if (thamGia != null) {
+            thamGia.setTrangThai("CANCELED");
+            thamGiaRepository.save(thamGia);
+            
+            // Gửi email thông báo nếu có cấu hình email
+            if (mailSender != null) {
+                SinhVien sinhVien = sinhVienService.findById(maSinhVien);
+                HoatDong hoatDong = hoatDongService.findById(maHD);
+                
+                if (sinhVien != null && sinhVien.getEmail() != null) {
+                    SimpleMailMessage message = new SimpleMailMessage();
+                    message.setTo(sinhVien.getEmail());
+                    message.setSubject("Hủy đăng ký tham gia hoạt động thành công");
+                    message.setText("Xin chào " + sinhVien.getHoTen() + ",\n\n"
+                        + "Bạn đã hủy đăng ký tham gia hoạt động sau:\n"
+                        + "Tên hoạt động: " + (hoatDong != null ? hoatDong.getTenHoatDong() : maHD) + "\n"
+                        + "Mã hoạt động: " + maHD + "\n\n"
+                        + "Nếu bạn muốn đăng ký lại, vui lòng truy cập hệ thống.\n\n"
+                        + "Trân trọng,\nBan quản lý");
+                    mailSender.send(message);
+                }
+            }
         }
+    }
+
+    @Override
+    public List<ThamGia> findByMaSinhVien(String maSinhVien, int page, int size) {
+        return thamGiaRepository.findByMaSinhVienOrderByNgayDangKyDesc(maSinhVien, PageRequest.of(page, size)).getContent();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countVolunteersByToChuc(ToChuc toChuc) {
+        return thamGiaRepository.countVolunteersByToChuc(toChuc);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ThamGia> findRecentVolunteersByToChuc(ToChuc toChuc, int limit) {
+        return thamGiaRepository.findRecentVolunteersByToChuc(toChuc, limit);
+    }
+
+    @Override
+    public List<ThamGia> findRecentActivities(String maSinhVien, int limit) {
+        return thamGiaRepository.findRecentActivities(maSinhVien, limit, PageRequest.of(0, limit));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countByStudent(SinhVien sinhVien) {
+        return thamGiaRepository.countByMaSinhVien(sinhVien.getMaSinhVien());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ThamGia> findRecentActivitiesByStudent(SinhVien sinhVien, int limit) {
+        return thamGiaRepository.findByMaSinhVienOrderByNgayDangKyDesc(
+            sinhVien.getMaSinhVien(), 
+            PageRequest.of(0, limit)
+        ).getContent();
+    }
+
+    @Override
+    public ThamGia dangKyThamGia(String maSinhVien, String maHoatDong) {
+        // Kiểm tra sinh viên tồn tại
+        SinhVien sinhVien = sinhVienService.findByMaSinhVien(maSinhVien);
+        if (sinhVien == null) {
+            throw new IllegalStateException("Không tìm thấy sinh viên");
+        }
+
+        // Kiểm tra hoạt động tồn tại
+        HoatDong hoatDong = hoatDongService.findByMaHoatDong(maHoatDong);
+        if (hoatDong == null) {
+            throw new IllegalStateException("Không tìm thấy hoạt động");
+        }
+
+        // Kiểm tra đã đăng ký chưa
+        if (thamGiaRepository.existsBySinhVienAndHoatDong(sinhVien, hoatDong)) {
+            throw new IllegalStateException("Sinh viên đã đăng ký hoạt động này");
+        }
+
+        // Kiểm tra số lượng đăng ký
+        if (hoatDong.getSoLuongDaDangKy() >= hoatDong.getSoLuongToiDa()) {
+            throw new IllegalStateException("Hoạt động đã đủ số lượng đăng ký");
+        }
+
+        // Tạo đăng ký mới
+        ThamGia thamGia = new ThamGia();
+        thamGia.setSinhVien(sinhVien);
+        thamGia.setHoatDong(hoatDong);
+        thamGia.setTrangThai("PENDING");
+        thamGia.setNgayDangKy(LocalDateTime.now());
+
+        // Cập nhật số lượng đăng ký
+        hoatDong.setSoLuongDaDangKy(hoatDong.getSoLuongDaDangKy() + 1);
+        hoatDongService.save(hoatDong);
+
+        return thamGiaRepository.save(thamGia);
+    }
+
+    @Override
+    public void huyDangKy(String maSinhVien, String maHoatDong) {
+        // Kiểm tra sinh viên tồn tại
+        SinhVien sinhVien = sinhVienService.findByMaSinhVien(maSinhVien);
+        if (sinhVien == null) {
+            throw new IllegalStateException("Không tìm thấy sinh viên");
+        }
+
+        // Kiểm tra hoạt động tồn tại
+        HoatDong hoatDong = hoatDongService.findByMaHoatDong(maHoatDong);
+        if (hoatDong == null) {
+            throw new IllegalStateException("Không tìm thấy hoạt động");
+        }
+
+        // Tìm đăng ký
+        ThamGia thamGia = thamGiaRepository.findBySinhVienAndHoatDong(sinhVien, hoatDong)
+            .orElseThrow(() -> new IllegalStateException("Không tìm thấy đăng ký"));
+
+        // Kiểm tra trạng thái
+        if (!"PENDING".equals(thamGia.getTrangThai())) {
+            throw new IllegalStateException("Không thể hủy đăng ký ở trạng thái này");
+        }
+
+        // Xóa đăng ký
+        thamGiaRepository.delete(thamGia);
+
+        // Cập nhật số lượng đăng ký
+        hoatDong.setSoLuongDaDangKy(hoatDong.getSoLuongDaDangKy() - 1);
+        hoatDongService.save(hoatDong);
     }
 } 

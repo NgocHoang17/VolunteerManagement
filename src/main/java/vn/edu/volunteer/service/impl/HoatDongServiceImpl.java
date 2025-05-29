@@ -2,18 +2,26 @@ package vn.edu.volunteer.service.impl;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.volunteer.model.HoatDong;
+import vn.edu.volunteer.model.ToChuc;
+import vn.edu.volunteer.repository.HoatDongRepository;
 import vn.edu.volunteer.service.HoatDongService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 @Transactional
 public class HoatDongServiceImpl implements HoatDongService {
+
+    @Autowired
+    private HoatDongRepository hoatDongRepository;
 
     @Autowired
     private SessionFactory sessionFactory;
@@ -23,145 +31,128 @@ public class HoatDongServiceImpl implements HoatDongService {
     }
 
     @Override
+    public Page<HoatDong> findAll(String maHoatDong, String tenHoatDong, String toChuc, String trangThai, Pageable pageable) {
+        return hoatDongRepository.findAll(maHoatDong, tenHoatDong, toChuc, trangThai, pageable);
+    }
+
+    @Override
+    public Page<HoatDong> findAll(Pageable pageable) {
+        return hoatDongRepository.findAll(pageable);
+    }
+
+    @Override
     public List<HoatDong> findAll() {
-        return getCurrentSession().createQuery("from HoatDong", HoatDong.class).list();
+        return hoatDongRepository.findAll();
     }
 
     @Override
     public List<HoatDong> findAllWithPaging(int pageNumber, int pageSize) {
-        Session session = getCurrentSession();
-        Query<HoatDong> query = session.createQuery("from HoatDong", HoatDong.class);
-        query.setFirstResult((pageNumber - 1) * pageSize);
-        query.setMaxResults(pageSize);
-        return query.list();
+        return hoatDongRepository.findAllWithPaging(pageNumber, pageSize);
     }
 
     @Override
     public List<HoatDong> findByTrangThaiWithPaging(String trangThai, int pageNumber, int pageSize) {
-        Session session = getCurrentSession();
-        Query<HoatDong> query = session.createQuery(
-            "from HoatDong where trangThai = :trangThai", 
-            HoatDong.class
-        );
-        query.setParameter("trangThai", trangThai);
-        query.setFirstResult((pageNumber - 1) * pageSize);
-        query.setMaxResults(pageSize);
-        return query.list();
+        return hoatDongRepository.findByTrangThai(trangThai, PageRequest.of(pageNumber, pageSize)).getContent();
     }
 
     @Override
     public List<HoatDong> searchByKeywordWithPaging(String keyword, int pageNumber, int pageSize) {
-        Session session = getCurrentSession();
-        Query<HoatDong> query = session.createQuery(
-            "from HoatDong where tenHD like :keyword or moTa like :keyword", 
-            HoatDong.class
-        );
-        query.setParameter("keyword", "%" + keyword + "%");
-        query.setFirstResult((pageNumber - 1) * pageSize);
-        query.setMaxResults(pageSize);
-        return query.list();
+        return hoatDongRepository.findByTenHoatDongContainingIgnoreCase(keyword, PageRequest.of(pageNumber, pageSize)).getContent();
     }
 
     @Override
-    public List<HoatDong> search(String keyword, String maToChuc, int pageNumber, int pageSize) {
-        Session session = getCurrentSession();
-        StringBuilder hql = new StringBuilder("from HoatDong h where 1=1");
-        
-        if (keyword != null && !keyword.isEmpty()) {
-            hql.append(" and (h.tenHD like :keyword or h.diaDiem like :keyword)");
-        }
-        if (maToChuc != null && !maToChuc.isEmpty()) {
-            hql.append(" and h.toChuc.maToChuc = :maToChuc");
-        }
-        
-        Query<HoatDong> query = session.createQuery(hql.toString(), HoatDong.class);
-        
-        if (keyword != null && !keyword.isEmpty()) {
-            query.setParameter("keyword", "%" + keyword + "%");
-        }
-        if (maToChuc != null && !maToChuc.isEmpty()) {
-            query.setParameter("maToChuc", maToChuc);
-        }
-        
-        query.setFirstResult((pageNumber - 1) * pageSize);
-        query.setMaxResults(pageSize);
-        return query.list();
+    public List<HoatDong> search(String keyword, int pageNumber, int pageSize) {
+        return hoatDongRepository.search(keyword, pageNumber, pageSize);
     }
 
     @Override
-    public List<HoatDong> searchAdvanced(String maHD, String tenHD, String maToChuc, int pageNumber, int pageSize) {
-        Session session = getCurrentSession();
-        StringBuilder hql = new StringBuilder("from HoatDong h where 1=1");
-        
-        if (maHD != null && !maHD.isEmpty()) {
-            hql.append(" and h.maHD like :maHD");
-        }
-        if (tenHD != null && !tenHD.isEmpty()) {
-            hql.append(" and lower(h.tenHD) like lower(:tenHD)");
-        }
-        if (maToChuc != null && !maToChuc.isEmpty()) {
-            hql.append(" and h.toChuc.maToChuc = :maToChuc");
-        }
-        
-        Query<HoatDong> query = session.createQuery(hql.toString(), HoatDong.class);
-        
-        if (maHD != null && !maHD.isEmpty()) {
-            query.setParameter("maHD", "%" + maHD + "%");
-        }
-        if (tenHD != null && !tenHD.isEmpty()) {
-            query.setParameter("tenHD", "%" + tenHD + "%");
-        }
-        if (maToChuc != null && !maToChuc.isEmpty()) {
-            query.setParameter("maToChuc", maToChuc);
-        }
-        
-        query.setFirstResult((pageNumber - 1) * pageSize);
-        query.setMaxResults(pageSize);
-        return query.list();
+    public List<HoatDong> searchAdvanced(String maHoatDong, String tenHoatDong, String maToChuc, int pageNumber, int pageSize) {
+        return hoatDongRepository.searchAdvanced(maHoatDong, tenHoatDong, maToChuc, pageNumber, pageSize);
     }
 
     @Override
     public long count() {
-        return getCurrentSession()
-            .createQuery("select count(*) from HoatDong", Long.class)
-            .uniqueResult();
+        return hoatDongRepository.count();
     }
 
     @Override
-    public long countByTrangThai(String trangThai) {
-        return getCurrentSession()
-            .createQuery("select count(*) from HoatDong where trangThai = :trangThai", Long.class)
-            .setParameter("trangThai", trangThai)
-            .uniqueResult();
+    public long countByToChuc(ToChuc toChuc) {
+        return hoatDongRepository.countByToChuc(toChuc);
     }
 
     @Override
-    public HoatDong findById(String maHD) {
-        return getCurrentSession().get(HoatDong.class, maHD);
+    public long countCertificates() {
+        return hoatDongRepository.countCertificates();
     }
 
     @Override
-    public HoatDong save(HoatDong hoatDong) {
-        getCurrentSession().saveOrUpdate(hoatDong);
-        return hoatDong;
+    public List<HoatDong> findRecentActivities(int limit) {
+        List<HoatDong> activities = hoatDongRepository.findRecentActivities(limit);
+        return activities.size() > limit ? activities.subList(0, limit) : activities;
     }
 
     @Override
-    public void deleteById(String maHD) {
-        HoatDong hoatDong = findById(maHD);
-        if (hoatDong != null) {
-            getCurrentSession().delete(hoatDong);
-        }
+    public List<HoatDong> findRecentActivitiesByToChuc(ToChuc toChuc, int limit) {
+        List<HoatDong> activities = hoatDongRepository.findRecentActivitiesByToChuc(toChuc, limit);
+        return activities.size() > limit ? activities.subList(0, limit) : activities;
     }
 
     @Override
     public HoatDong getMostPopularActivity() {
+        return hoatDongRepository.getMostPopularActivity();
+    }
+
+    @Override
+    public List<HoatDong> findAvailableActivities(int page, int size) {
+        return hoatDongRepository.findByTrangThaiAndThoiGianBatDauAfterOrderByThoiGianBatDauAsc(
+            "OPEN", 
+            LocalDateTime.now(), 
+            PageRequest.of(page, size)
+        ).getContent();
+    }
+
+    @Override
+    public List<HoatDong> findByToChuc(String maToChuc, int page, int size) {
         return getCurrentSession()
-            .createQuery(
-                "from HoatDong h order by size(h.thamGias) desc", 
-                HoatDong.class
-            )
-            .setMaxResults(1)
-            .uniqueResult();
+            .createQuery("from HoatDong h where h.toChuc.maToChuc = :maToChuc order by h.thoiGianBatDau desc", HoatDong.class)
+            .setParameter("maToChuc", maToChuc)
+            .setFirstResult(page * size)
+            .setMaxResults(size)
+            .list();
+    }
+
+    @Override
+    public long countCertificatesByToChuc(ToChuc toChuc) {
+        return hoatDongRepository.countCertificatesByToChuc(toChuc);
+    }
+
+    @Override
+    public long countHoursByToChuc(ToChuc toChuc) {
+        return hoatDongRepository.countHoursByToChuc(toChuc);
+    }
+
+    @Override
+    public long countByTrangThai(String trangThai) {
+        return hoatDongRepository.countByTrangThai(trangThai);
+    }
+
+    @Override
+    public HoatDong findById(String maHoatDong) {
+        return hoatDongRepository.findById(maHoatDong).orElse(null);
+    }
+
+    @Override
+    public HoatDong findByMaHoatDong(String maHoatDong) {
+        return hoatDongRepository.findById(maHoatDong).orElse(null);
+    }
+
+    @Override
+    public HoatDong save(HoatDong hoatDong) {
+        return hoatDongRepository.save(hoatDong);
+    }
+
+    @Override
+    public void delete(String maHoatDong) {
+        hoatDongRepository.deleteById(maHoatDong);
     }
 } 

@@ -4,6 +4,7 @@
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:mvc="http://www.springframework.org/schema/mvc"
        xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
        xsi:schemaLocation="
             http://www.springframework.org/schema/beans
             http://www.springframework.org/schema/beans/spring-beans.xsd
@@ -12,73 +13,150 @@
             http://www.springframework.org/schema/mvc
             http://www.springframework.org/schema/mvc/spring-mvc.xsd
             http://www.springframework.org/schema/tx
-            http://www.springframework.org/schema/tx/spring-tx.xsd">
+            http://www.springframework.org/schema/tx/spring-tx.xsd
+            http://www.springframework.org/schema/data/jpa
+            http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
 
     <!-- Component Scanning -->
     <context:component-scan base-package="vn.edu.volunteer"/>
 
+    <!-- Enable JPA repositories -->
+    <jpa:repositories base-package="vn.edu.volunteer.repository"/>
+
     <!-- Enable MVC annotations -->
     <mvc:annotation-driven/>
 
-    <!-- Static Resources -->
+    <!-- Static Resources Configuration -->
+    <!-- Map all /resources/** to the /resources directory -->
     <mvc:resources mapping="/resources/**" location="/resources/"/>
-    <mvc:resources mapping="/static/**" location="/static/"/>
+    <mvc:resources mapping="/static/**" location="/resources/"/>
+    
+    <!-- CSS, JS and Images -->
+    <mvc:resources mapping="/css/**" location="/resources/css/"/>
+    <mvc:resources mapping="/js/**" location="/resources/js/"/>
+    <mvc:resources mapping="/images/**" location="/resources/images/"/>
+    
+    <!-- Webjars for external libraries -->
+    <mvc:resources mapping="/webjars/**" location="classpath:/META-INF/resources/webjars/"/>
+    
+    <!-- File Upload Directory -->
+    <mvc:resources mapping="/uploads/**" location="file:${user.home}/volunteer-uploads/"/>
 
-    <!-- View Resolver -->
-    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-        <property name="prefix" value="/WEB-INF/views/"/>
-        <property name="suffix" value=".jsp"/>
+    <!-- View Resolver Configuration -->
+    <!-- Tiles Configuration -->
+    <bean id="tilesConfigurer" class="org.springframework.web.servlet.view.tiles3.TilesConfigurer">
+        <property name="definitions">
+            <list>
+                <value>/WEB-INF/tiles/tiles.xml</value>
+            </list>
+        </property>
+        <property name="preparerFactoryClass" 
+                  value="org.springframework.web.servlet.view.tiles3.SpringBeanPreparerFactory"/>
+        <property name="checkRefresh" value="true"/>
+    </bean>
+
+    <!-- View Resolver Chain -->
+    <bean class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
+        <property name="order" value="1"/>
+        <property name="viewResolvers">
+            <list>
+                <!-- Tiles View Resolver -->
+                <bean class="org.springframework.web.servlet.view.tiles3.TilesViewResolver">
+                    <property name="order" value="1"/>
+                </bean>
+                
+                <!-- JSP View Resolver -->
+                <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+                    <property name="prefix" value="/WEB-INF/views/"/>
+                    <property name="suffix" value=".jsp"/>
+                    <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+                    <property name="order" value="2"/>
+                </bean>
+            </list>
+        </property>
     </bean>
 
     <!-- Database Configuration -->
-    <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
         <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
         <property name="url" value="jdbc:mysql://localhost:3306/volunteerdb?useSSL=false&amp;serverTimezone=UTC&amp;allowPublicKeyRetrieval=true"/>
         <property name="username" value="root"/>
         <property name="password" value="Hoang1706205@"/>
     </bean>
 
-    <!-- Hibernate SessionFactory -->
-    <bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+    <!-- JPA EntityManagerFactory -->
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
         <property name="dataSource" ref="dataSource"/>
         <property name="packagesToScan" value="vn.edu.volunteer.model"/>
-        <property name="hibernateProperties">
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+                <property name="showSql" value="true"/>
+                <property name="generateDdl" value="true"/>
+                <property name="database" value="MYSQL"/>
+            </bean>
+        </property>
+        <property name="jpaProperties">
             <props>
                 <prop key="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</prop>
                 <prop key="hibernate.show_sql">true</prop>
                 <prop key="hibernate.format_sql">true</prop>
-                <prop key="hibernate.hbm2ddl.auto">validate</prop>
+                <prop key="hibernate.hbm2ddl.auto">update</prop>
+                <prop key="hibernate.current_session_context_class">org.springframework.orm.hibernate5.SpringSessionContext</prop>
                 <prop key="hibernate.connection.characterEncoding">utf8</prop>
-                <prop key="hibernate.jdbc.time_zone">UTC</prop>
+                <prop key="hibernate.connection.useUnicode">true</prop>
+                <prop key="hibernate.connection.charSet">UTF-8</prop>
+                <!-- Connection pool settings -->
+                <prop key="hibernate.c3p0.min_size">5</prop>
+                <prop key="hibernate.c3p0.max_size">20</prop>
+                <prop key="hibernate.c3p0.timeout">300</prop>
+                <prop key="hibernate.c3p0.max_statements">50</prop>
+                <prop key="hibernate.c3p0.idle_test_period">3000</prop>
             </props>
         </property>
     </bean>
 
     <!-- Transaction Manager -->
-    <bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
-        <property name="sessionFactory" ref="sessionFactory"/>
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory"/>
+        <property name="dataSource" ref="dataSource"/>
+        <property name="jpaDialect">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaDialect"/>
+        </property>
     </bean>
 
     <!-- Enable Transaction Annotations -->
     <tx:annotation-driven transaction-manager="transactionManager"/>
 
-    <!-- Multipart Resolver -->
-    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
-        <property name="maxUploadSize" value="10485760"/> <!-- 10MB -->
-    </bean>
-
-    <!-- Mail Sender -->
+    <!-- Mail Configuration -->
     <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
         <property name="host" value="smtp.gmail.com"/>
         <property name="port" value="587"/>
-        <property name="username" value="your-email@gmail.com"/>
-        <property name="password" value="your-app-password"/>
+        <property name="username" value="your.email@gmail.com"/>
+        <property name="password" value="your-app-specific-password"/>
         <property name="javaMailProperties">
             <props>
                 <prop key="mail.transport.protocol">smtp</prop>
                 <prop key="mail.smtp.auth">true</prop>
                 <prop key="mail.smtp.starttls.enable">true</prop>
                 <prop key="mail.debug">true</prop>
+            </props>
+        </property>
+    </bean>
+
+    <!-- Multipart Resolver for File Upload -->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="maxUploadSize" value="10485760"/> <!-- 10MB -->
+        <property name="maxUploadSizePerFile" value="2097152"/> <!-- 2MB per file -->
+        <property name="defaultEncoding" value="UTF-8"/>
+    </bean>
+
+    <!-- Error Pages Configuration -->
+    <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+        <property name="defaultErrorView" value="error/500"/>
+        <property name="exceptionMappings">
+            <props>
+                <prop key="org.springframework.web.servlet.NoHandlerFoundException">error/404</prop>
+                <prop key="org.springframework.security.access.AccessDeniedException">error/403</prop>
             </props>
         </property>
     </bean>

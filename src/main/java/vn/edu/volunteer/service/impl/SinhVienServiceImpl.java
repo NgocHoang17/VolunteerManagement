@@ -1,14 +1,16 @@
 package vn.edu.volunteer.service.impl;
 
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.volunteer.model.SinhVien;
+import vn.edu.volunteer.model.ChungNhan;
+import vn.edu.volunteer.repository.SinhVienRepository;
 import vn.edu.volunteer.service.SinhVienService;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 @Service
@@ -16,115 +18,120 @@ import java.util.List;
 public class SinhVienServiceImpl implements SinhVienService {
 
     @Autowired
-    private SessionFactory sessionFactory;
+    private SinhVienRepository sinhVienRepository;
 
-    private Session getCurrentSession() {
-        return sessionFactory.getCurrentSession();
+    @Override
+    public Page<SinhVien> findAll(String maSinhVien, String hoTen, String lop, Pageable pageable) {
+        return sinhVienRepository.findAll(maSinhVien, hoTen, lop, pageable);
+    }
+
+    @Override
+    public Page<SinhVien> findAll(Pageable pageable) {
+        return sinhVienRepository.findAll(pageable);
     }
 
     @Override
     public List<SinhVien> findAll() {
-        return getCurrentSession().createQuery("from SinhVien", SinhVien.class).list();
+        return sinhVienRepository.findAll();
     }
 
     @Override
     public List<SinhVien> findAllWithPaging(int pageNumber, int pageSize) {
-        Session session = getCurrentSession();
-        Query<SinhVien> query = session.createQuery("from SinhVien", SinhVien.class);
-        query.setFirstResult((pageNumber - 1) * pageSize);
-        query.setMaxResults(pageSize);
-        return query.list();
+        return sinhVienRepository.findAll()
+            .subList(pageNumber * pageSize, 
+                    Math.min((pageNumber + 1) * pageSize, (int) count()));
     }
 
     @Override
-    public List<SinhVien> search(String keyword, String maTruong, int pageNumber, int pageSize) {
-        Session session = getCurrentSession();
-        StringBuilder hql = new StringBuilder("from SinhVien s where 1=1");
-        
-        if (keyword != null && !keyword.isEmpty()) {
-            hql.append(" and (lower(s.hoTen) like lower(:keyword) or s.mssv like :keyword)");
-        }
-        if (maTruong != null && !maTruong.isEmpty()) {
-            hql.append(" and s.truong.maTruong = :maTruong");
-        }
-        
-        Query<SinhVien> query = session.createQuery(hql.toString(), SinhVien.class);
-        
-        if (keyword != null && !keyword.isEmpty()) {
-            query.setParameter("keyword", "%" + keyword + "%");
-        }
-        if (maTruong != null && !maTruong.isEmpty()) {
-            query.setParameter("maTruong", maTruong);
-        }
-        
-        query.setFirstResult((pageNumber - 1) * pageSize);
-        query.setMaxResults(pageSize);
-        return query.list();
+    public List<SinhVien> search(String keyword, int pageNumber, int pageSize) {
+        return sinhVienRepository.search(keyword);
     }
 
     @Override
-    public SinhVien findById(String mssv) {
-        return getCurrentSession().get(SinhVien.class, mssv);
-    }
-
-    @Override
-    public SinhVien save(SinhVien sinhVien) {
-        getCurrentSession().saveOrUpdate(sinhVien);
-        return sinhVien;
-    }
-
-    @Override
-    public void deleteById(String mssv) {
-        SinhVien sinhVien = findById(mssv);
-        if (sinhVien != null) {
-            getCurrentSession().delete(sinhVien);
-        }
+    public List<SinhVien> searchAdvanced(String maSinhVien, String hoTen, int pageNumber, int pageSize) {
+        // Implementation using criteria or custom query
+        return null;
     }
 
     @Override
     public long count() {
-        return getCurrentSession()
-            .createQuery("select count(*) from SinhVien", Long.class)
-            .uniqueResult();
+        return sinhVienRepository.count();
     }
 
     @Override
-    public List<SinhVien> searchAdvanced(String mssv, String hoTen, String maTruong, int pageNumber, int pageSize) {
-        Session session = getCurrentSession();
-        StringBuilder hql = new StringBuilder("from SinhVien s where 1=1");
-        
-        if (mssv != null && !mssv.isEmpty()) {
-            hql.append(" and s.mssv like :mssv");
-        }
-        if (hoTen != null && !hoTen.isEmpty()) {
-            hql.append(" and lower(s.hoTen) like lower(:hoTen)");
-        }
-        if (maTruong != null && !maTruong.isEmpty()) {
-            hql.append(" and s.truong.maTruong = :maTruong");
-        }
-        
-        Query<SinhVien> query = session.createQuery(hql.toString(), SinhVien.class);
-        
-        if (mssv != null && !mssv.isEmpty()) {
-            query.setParameter("mssv", "%" + mssv + "%");
-        }
-        if (hoTen != null && !hoTen.isEmpty()) {
-            query.setParameter("hoTen", "%" + hoTen + "%");
-        }
-        if (maTruong != null && !maTruong.isEmpty()) {
-            query.setParameter("maTruong", maTruong);
-        }
-        
-        query.setFirstResult((pageNumber - 1) * pageSize);
-        query.setMaxResults(pageSize);
-        return query.list();
+    public SinhVien findById(String maSinhVien) {
+        return sinhVienRepository.findById(maSinhVien).orElse(null);
     }
 
     @Override
-    public int getTotalVolunteerHours(String mssv) {
-        return getCurrentSession()
-            .createQuery("select coalesce(sum(t.soGioThamGia), 0) from ThamGia t where t.sinhVien.mssv = :mssv and t.trangThai = 'APPROVED'", Integer.class)
-            .setParameter("mssv", mssv)
-            .uniqueResult();
+    public SinhVien findByMaSinhVien(String maSinhVien) {
+        return sinhVienRepository.findById(maSinhVien).orElse(null);
+    }
+
+    @Override
+    public SinhVien findByUserId(String userId) {
+        return sinhVienRepository.findByUser_Id(Long.parseLong(userId)).orElse(null);
+    }
+
+    @Override
+    public SinhVien findByUsername(String username) {
+        return sinhVienRepository.findByUser_Username(username).orElse(null);
+    }
+
+    @Override
+    public Integer getTotalVolunteerHours(String maSinhVien) {
+        return sinhVienRepository.getTotalVolunteerHours(maSinhVien);
+    }
+
+    @Override
+    public SinhVien save(SinhVien sinhVien) {
+        return sinhVienRepository.save(sinhVien);
+    }
+
+    @Override
+    public SinhVien update(SinhVien sinhVien) {
+        SinhVien existingSinhVien = findByMaSinhVien(sinhVien.getMaSinhVien());
+        if (existingSinhVien == null) {
+            throw new IllegalStateException("Không tìm thấy sinh viên để cập nhật");
+        }
+        
+        // Preserve relationships and sensitive data
+        sinhVien.setUser(existingSinhVien.getUser());
+        sinhVien.setChungNhans(existingSinhVien.getChungNhans());
+        sinhVien.setCreatedAt(existingSinhVien.getCreatedAt());
+        
+        return sinhVienRepository.save(sinhVien);
+    }
+
+    @Override
+    public void delete(String maSinhVien) {
+        sinhVienRepository.deleteById(maSinhVien);
+    }
+
+    @Override
+    public SinhVien findByIdWithCertificates(String maSinhVien) {
+        return sinhVienRepository.findByIdWithCertificates(maSinhVien).orElse(null);
+    }
+
+    @Override
+    public SinhVien findByUsernameWithCertificates(String username) {
+        return sinhVienRepository.findByUsernameWithCertificates(username).orElse(null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ChungNhan> getCertificates(String maSinhVien) {
+        SinhVien sinhVien = findByIdWithCertificates(maSinhVien);
+        if (sinhVien == null) {
+            throw new IllegalStateException("Không tìm thấy sinh viên với mã: " + maSinhVien);
+        }
+        return sinhVien.getChungNhans();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void downloadCertificate(String maSinhVien, String maCN, HttpServletResponse response) {
+        // Implementation for downloading certificate
+        throw new UnsupportedOperationException("Chức năng tải chứng nhận chưa được triển khai");
     }
 } 

@@ -18,22 +18,22 @@ public class DanhGiaService {
     }
 
     @Transactional(readOnly = true)
-    public DanhGia findById(String mssv, String maHD) {
-        return danhGiaRepository.findById(mssv, maHD).orElse(null);
+    public DanhGia findById(String maSinhVien, String maHoatDong) {
+        return danhGiaRepository.findById(maSinhVien, maHoatDong).orElse(null);
     }
 
     @Transactional(readOnly = true)
-    public List<DanhGia> findByHoatDong(String maHD) {
-        return danhGiaRepository.findByHoatDong_MaHD(maHD);
+    public List<DanhGia> findByHoatDong(String maHoatDong) {
+        return danhGiaRepository.findByHoatDong_MaHD(maHoatDong);
     }
 
     @Transactional(readOnly = true)
-    public List<DanhGia> findBySinhVien(String mssv) {
-        return danhGiaRepository.findBySinhVien_Mssv(mssv);
+    public List<DanhGia> findBySinhVien(String maSinhVien) {
+        return danhGiaRepository.findBySinhVien_Mssv(maSinhVien);
     }
 
     @Transactional(readOnly = true)
-    public double getAverageDiemByHoatDong(String maHD) {
-        return danhGiaRepository.getAverageDiemByHoatDong_MaHD(maHD);
+    public double getAverageDiemByHoatDong(String maHoatDong) {
+        return danhGiaRepository.getAverageDiemByHoatDong_MaHD(maHoatDong);
     }
 }

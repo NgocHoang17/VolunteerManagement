@@ -1,49 +1,89 @@
 package vn.edu.volunteer.model;
 
+import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import javax.persistence.*;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
+@Data
 @Entity
-@Table(name = "HOATDONG")
+@Table(name = "hoat_dong")
 public class HoatDong {
     @Id
-    @Column(name = "MaHD")
-    private String maHD;
+    @Column(name = "ma_hoat_dong")
+    private String maHoatDong;
 
-    @Column(name = "TenHD")
-    private String tenHD;
+    @Column(name = "ten_hoat_dong", nullable = false)
+    private String tenHoatDong;
 
-    @Column(name = "DiaDiem", columnDefinition = "TEXT")
+    @Column(name = "mo_ta")
+    @Lob
+    private String moTa;
+
+    @Column(name = "yeu_cau")
+    @Lob
+    private String yeuCau;
+
+    @Column(name = "thoi_gian_bat_dau", nullable = false)
+    private LocalDateTime thoiGianBatDau;
+
+    @Column(name = "thoi_gian_ket_thuc", nullable = false)
+    private LocalDateTime thoiGianKetThuc;
+
+    @Column(name = "dia_diem", nullable = false)
     private String diaDiem;
 
-    @Column(name = "ThoiGianBatDau")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date thoiGianBatDau;
+    @Column(name = "khu_vuc")
+    private String khuVuc;
 
-    @Column(name = "ThoiGianKetThuc")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date thoiGianKetThuc;
+    @Column(name = "linh_vuc", nullable = false)
+    private String linhVuc;
 
-    @ManyToOne
-    @JoinColumn(name = "MaToChuc")
+    @Column(name = "so_luong_tinh_nguyen_vien", nullable = false)
+    private Integer soLuongTinhNguyenVien;
+
+    @Column(name = "so_luong_toi_da", nullable = false)
+    private Integer soLuongToiDa;
+
+    @Column(name = "so_luong_da_dang_ky")
+    private Integer soLuongDaDangKy = 0;
+
+    @Column(name = "loi_ich")
+    private String loiIch;
+
+    @Column(name = "hinh_anh_url")
+    private String hinhAnhUrl;
+
+    @Column(name = "trang_thai", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private TrangThaiHoatDong trangThai = TrangThaiHoatDong.CHUA_DIEN_RA;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ma_to_chuc", nullable = false)
     private ToChuc toChuc;
 
-    @OneToMany(mappedBy = "hoatDong")
-    private List<ThamGia> thamGias;
+    @OneToMany(mappedBy = "hoatDong", cascade = CascadeType.ALL)
+    private List<ThamGia> thamGias = new ArrayList<>();
 
-    public String getMaHD() { return maHD; }
-    public void setMaHD(String maHD) { this.maHD = maHD; }
-    public String getTenHD() { return tenHD; }
-    public void setTenHD(String tenHD) { this.tenHD = tenHD; }
-    public String getDiaDiem() { return diaDiem; }
-    public void setDiaDiem(String diaDiem) { this.diaDiem = diaDiem; }
-    public Date getThoiGianBatDau() { return thoiGianBatDau; }
-    public void setThoiGianBatDau(Date thoiGianBatDau) { this.thoiGianBatDau = thoiGianBatDau; }
-    public Date getThoiGianKetThuc() { return thoiGianKetThuc; }
-    public void setThoiGianKetThuc(Date thoiGianKetThuc) { this.thoiGianKetThuc = thoiGianKetThuc; }
-    public ToChuc getToChuc() { return toChuc; }
-    public void setToChuc(ToChuc toChuc) { this.toChuc = toChuc; }
-    public List<ThamGia> getThamGias() { return thamGias; }
-    public void setThamGias(List<ThamGia> thamGias) { this.thamGias = thamGias; }
+    @OneToMany(mappedBy = "hoatDong", cascade = CascadeType.ALL)
+    private List<DanhGia> danhGias = new ArrayList<>();
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    public enum TrangThaiHoatDong {
+        CHUA_DIEN_RA,
+        DANG_DIEN_RA,
+        DA_HOAN_THANH,
+        DA_HUY
+    }
 }

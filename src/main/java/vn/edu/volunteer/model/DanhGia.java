@@ -1,43 +1,63 @@
 package vn.edu.volunteer.model;
 
+import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
+@Data
 @Entity
-@Table(name = "DANHGIA")
-@IdClass(ThamGiaId.class)
+@Table(name = "danh_gia")
 public class DanhGia {
-    @Id
-    @Column(name = "MSSV")
-    private String mssv;
+    @EmbeddedId
+    private DanhGiaId id;
 
-    @Id
-    @Column(name = "MaHD")
-    private String maHD;
-
-    @Column(name = "Diem")
-    private int diem;
-
-    @Column(name = "NhanXet", columnDefinition = "TEXT")
-    private String nhanXet;
-
-    @ManyToOne
-    @JoinColumn(name = "MSSV", insertable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("maSinhVien")
+    @JoinColumn(name = "ma_sinh_vien")
     private SinhVien sinhVien;
 
-    @ManyToOne
-    @JoinColumn(name = "MaHD", insertable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("maHoatDong")
+    @JoinColumn(name = "ma_hoat_dong")
     private HoatDong hoatDong;
 
-    public String getMssv() { return mssv; }
-    public void setMssv(String mssv) { this.mssv = mssv; }
-    public String getMaHD() { return maHD; }
-    public void setMaHD(String maHD) { this.maHD = maHD; }
-    public int getDiem() { return diem; }
-    public void setDiem(int diem) { this.diem = diem; }
-    public String getNhanXet() { return nhanXet; }
-    public void setNhanXet(String nhanXet) { this.nhanXet = nhanXet; }
-    public SinhVien getSinhVien() { return sinhVien; }
-    public void setSinhVien(SinhVien sinhVien) { this.sinhVien = sinhVien; }
-    public HoatDong getHoatDong() { return hoatDong; }
-    public void setHoatDong(HoatDong hoatDong) { this.hoatDong = hoatDong; }
+    @Column(name = "diem", nullable = false)
+    private Integer diem;
+
+    @Column(name = "nhan_xet")
+    @Lob
+    private String nhanXet;
+
+    @Column(name = "created_at")
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
+    public void setMaSinhVien(String maSinhVien) {
+        if (id == null) {
+            id = new DanhGiaId();
+        }
+        id.setMaSinhVien(maSinhVien);
+    }
+
+    public void setMaHoatDong(String maHoatDong) {
+        if (id == null) {
+            id = new DanhGiaId();
+        }
+        id.setMaHoatDong(maHoatDong);
+    }
+
+    public String getMaSinhVien() {
+        return id != null ? id.getMaSinhVien() : null;
+    }
+
+    public String getMaHoatDong() {
+        return id != null ? id.getMaHoatDong() : null;
+    }
 }

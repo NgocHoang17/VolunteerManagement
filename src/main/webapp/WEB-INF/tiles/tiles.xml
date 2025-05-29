@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN"
+       "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+<tiles-definitions>
+    <!-- Base Layout Definition -->
+    <definition name="baseLayout" template="/WEB-INF/views/layouts/layout.jsp">
+        <put-attribute name="title" value="Hệ thống quản lý tình nguyện viên" />
+        <put-attribute name="head" value="" />
+        <put-attribute name="navbar" value="/WEB-INF/views/layouts/navbar.jsp" />
+        <put-attribute name="sidebar" value="" />
+        <put-attribute name="content" value="" />
+        <put-attribute name="footer" value="/WEB-INF/views/layouts/footer.jsp" />
+    </definition>
+
+    <!-- Admin Layout Definition -->
+    <definition name="adminLayout" extends="baseLayout">
+        <put-attribute name="sidebar" value="/WEB-INF/views/layouts/sidebar-admin.jsp" />
+    </definition>
+
+    <!-- Student Layout Definition -->
+    <definition name="studentLayout" extends="baseLayout">
+        <put-attribute name="sidebar" value="/WEB-INF/views/layouts/sidebar-student.jsp" />
+    </definition>
+
+    <!-- Organization Layout Definition -->
+    <definition name="organizationLayout" extends="baseLayout">
+        <put-attribute name="sidebar" value="/WEB-INF/views/layouts/sidebar-organization.jsp" />
+    </definition>
+
+    <!-- Admin Pages -->
+    <definition name="admin/dashboard" extends="adminLayout">
+        <put-attribute name="title" value="Quản trị hệ thống"/>
+        <put-attribute name="content" value="/WEB-INF/views/admin/dashboard.jsp"/>
+    </definition>
+
+    <definition name="admin/*" extends="adminLayout">
+        <put-attribute name="title" value="Quản trị - {1}" />
+        <put-attribute name="content" value="/WEB-INF/views/admin/{1}.jsp" />
+    </definition>
+
+    <!-- Public Pages -->
+    <definition name="home" extends="baseLayout">
+        <put-attribute name="title" value="Trang chủ" />
+        <put-attribute name="content" value="/WEB-INF/views/public/home.jsp" />
+    </definition>
+
+    <!-- Auth Pages -->
+    <definition name="auth/*" extends="baseLayout">
+        <put-attribute name="title" value="Xác thực - {1}" />
+        <put-attribute name="content" value="/WEB-INF/views/auth/{1}.jsp" />
+    </definition>
+
+    <!-- Student Pages -->
+    <definition name="student/*" extends="studentLayout">
+        <put-attribute name="title" value="Sinh viên - {1}" />
+        <put-attribute name="content" value="/WEB-INF/views/student/{1}.jsp" />
+    </definition>
+
+    <!-- Organization Pages -->
+    <definition name="organization/*" extends="organizationLayout">
+        <put-attribute name="title" value="Tổ chức - {1}" />
+        <put-attribute name="content" value="/WEB-INF/views/organization/{1}.jsp" />
+    </definition>
+
+    <!-- Profile Pages -->
+    <definition name="profile/*" extends="baseLayout">
+        <put-attribute name="title" value="Hồ sơ - {1}" />
+        <put-attribute name="content" value="/WEB-INF/views/profile/{1}.jsp" />
+    </definition>
+
+    <!-- Error Pages -->
+    <definition name="error/*" extends="baseLayout">
+        <put-attribute name="title" value="Lỗi" />
+        <put-attribute name="content" value="/WEB-INF/views/error/{1}.jsp" />
+    </definition>
+</tiles-definitions> 

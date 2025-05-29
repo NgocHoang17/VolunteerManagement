@@ -1,5 +1,6 @@
 package vn.edu.volunteer.service;
 
+import java.util.List;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import vn.edu.volunteer.model.User;
 
@@ -10,4 +11,6 @@ public interface UserService extends UserDetailsService {
     void deleteByUsername(String username);
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
+    List<User> findRecentUsers(int limit);
+    long count();
 }
